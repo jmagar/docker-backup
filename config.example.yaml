@@ -1,0 +1,38 @@
+# Example configuration for Go Docker Backup Tool
+
+# Path to the directory containing your Docker Compose project subdirectories
+# compose_dir: /path/to/your/compose/projects
+
+# Path to the base directory where application data volumes are stored
+# appdata_dir: /path/to/your/appdata
+
+# Path where the backup zip files will be stored locally
+# backup_dir: /path/to/your/backups
+
+# Set to true to restart stacks after a successful backup
+# restart_stacks: false
+
+# Set to true to pull latest images before restarting (only if restart_stacks is true)
+# pull_images: false
+
+# List of glob patterns to exclude from backups
+# exclude_patterns:
+#  - ".git/*"
+#  - "node_modules/*"
+#  - "*.log"
+#  - "cache/*"
+
+# Enable verbose logging
+# verbose: false
+
+# Rsync configuration (optional)
+rsync:
+  # Set to true to enable transferring backups via rsync
+  # enable: false
+  
+  # Remote rsync destination (e.g., user@host:/remote/backup/path/)
+  # Required if rsync is enabled
+  # destination: ""
+  
+  # Additional options for the rsync command
+  # options: "--archive --partial --compress --delete -e 'ssh -p 2222'" 
