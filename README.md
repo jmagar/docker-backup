@@ -16,6 +16,12 @@ A utility written in Go to back up Docker Compose projects, including specified 
 *   Optionally transfers the created zip archive to a remote destination using `rsync`.
 *   Configuration via command-line flags, environment variables, and/or a `config.yaml` file.
 *   Basic logging with verbose option.
+*   **Enhanced Logging:**
+    *   Colorized terminal output for improved readability (Info/Warn/Error/Success/Debug).
+    *   Simultaneous logging to a file.
+    *   Configurable log file path (`--log-file`, `DOCKER_BACKUP_LOG_FILE`, `log_file` in config).
+    *   Automatic log rotation based on size, age, and number of backups (configurable in `config.yaml`).
+    *   Verbose option (`-v`, `--verbose`, `DOCKER_BACKUP_VERBOSE`) enables debug messages.
 
 ## Installation
 
@@ -26,9 +32,9 @@ A utility written in Go to back up Docker Compose projects, including specified 
     *   `rsync` (if using the rsync feature)
 2.  **Build:**
     ```bash
-    go build -o docker-backup ./cmd/backup-tool
+    go build -o backup-tool ./cmd/backup-tool
     ```
-3.  Place the compiled `docker-backup` binary in your PATH or run it directly (`./docker-backup`).
+3.  Place the compiled `backup-tool` binary in your PATH or run it directly (`./backup-tool`).
 
 ## Configuration
 
@@ -48,48 +54,59 @@ Example `config.yaml`:
 compose_dir: /srv/docker/compose
 appdata_dir: /srv/docker/appdata
 backup_dir: /mnt/backups/docker
-restart_stacks: true
-pull_images: true
+restart_after_backup: true
+pull_before_restart: true
 verbose: false
-exclude_patterns:
+exclude:
   - ".git/*"
-  - "cache/*"
+  - cache/*
   - "*.log"
 
 rsync:
-  enable: true
+  enabled: true
   destination: "user@backup-server:/srv/docker-backups/"
   options: "--archive --compress -e 'ssh -i /home/user/.ssh/id_rsa'"
+  command: "rsync"
+
+# Logging Configuration
+log_file: "/var/log/backup-tool.log"
+log_rotation_max_size_mb: 100
+log_rotation_max_backups: 5
+log_rotation_max_age_days: 30
+log_rotation_compress: true
 ```
 
 ### Environment Variables
 
-Set environment variables prefixed with `DOCKER_BACKUP_`. Nested keys use underscores.
+Set environment variables prefixed with `DOCKER_BACKUP_`. Nested keys use underscores. Underscores in keys map to underscores in env vars (e.g., `restart_after_backup` -> `DOCKER_BACKUP_RESTART_AFTER_BACKUP`).
 
 Example:
 
 ```bash
 export DOCKER_BACKUP_COMPOSE_DIR="/srv/docker/compose"
-export DOCKER_BACKUP_RESTART_STACKS=true
-export DOCKER_BACKUP_RSYNC_ENABLE=true
+export DOCKER_BACKUP_RESTART_AFTER_BACKUP=true
+export DOCKER_BACKUP_RSYNC_ENABLED=true
 export DOCKER_BACKUP_RSYNC_DESTINATION="user@host:/path"
+export DOCKER_BACKUP_LOG_FILE="/logs/backup.log"
 ```
 
 ### Command-line Flags
 
-Run `docker-backup --help` to see all available flags:
+Run `backup-tool --help` to see all available flags (output may vary slightly):
 
 ```text
-Usage of docker-backup:
+Usage of backup-tool:
       --appdata-dir string     Base directory containing application data volumes (default "/home/server/appdata")
       --backup-dir string      Directory to store backup zip files (default "./docker_backups")
       --compose-dir string     Directory containing docker compose project subfolders (default "/home/server/compose")
       --config string          Path to configuration file (optional)
       --exclude stringSlice    Glob patterns to exclude from backup (can be specified multiple times)
+      --log-file string        Path to log file (defaults to backup-tool.log in current dir)
       --pull                   Pull latest images before restarting stacks (only if --restart is true)
       --restart                Restart stacks after successful backup
-      --rsync-enable           Enable rsync transfer of backup files
+      --rsync-cmd string       Path to the rsync command executable (default "rsync")
       --rsync-dest string      Rsync destination (e.g., user@host:/path/)
+      --rsync-enabled          Enable rsync transfer of backup files
       --rsync-opts string      Additional options for the rsync command (default "--archive --partial --compress --delete")
   -v, --verbose                Enable verbose logging
 ```
@@ -99,15 +116,18 @@ Usage of docker-backup:
 Run the compiled binary. Configure using flags, environment variables, or a config file.
 
 ```bash
-# Basic usage with defaults
-./docker-backup
+# Basic usage with defaults (logs to ./backup-tool.log)
+./backup-tool
 
 # Using flags
-./docker-backup --compose-dir /opt/stacks --backup-dir /backups --restart --rsync-enable --rsync-dest myuser@remote:/backups/
+./backup-tool --compose-dir /opt/stacks --backup-dir /backups --restart --rsync-enabled --rsync-dest myuser@remote:/backups/ --log-file /var/log/docker_backup.log
 
 # Using a config file
-./docker-backup --config /etc/docker-backup/config.yaml
+./backup-tool --config /etc/docker-backup/config.yaml
 
-# Using verbose logging
-./docker-backup -v
+# Using verbose logging (includes DEBUG messages)
+./backup-tool -v
+
+# Redirecting output (colors will be disabled in the file)
+./backup-tool > output.txt
 ``` 

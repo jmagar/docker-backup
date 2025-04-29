@@ -3,25 +3,49 @@ package util
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 )
 
 // MatchesExclude checks if a given path matches any of the provided glob patterns.
 func MatchesExclude(path string, patterns []string) (bool, error) {
 	if len(patterns) == 0 {
-		return false, nil // No patterns means no match
+		return false, nil
 	}
 
+	normalizedPath := filepath.ToSlash(path)
+	baseName := filepath.Base(normalizedPath)
+
 	for _, pattern := range patterns {
-		matched, err := filepath.Match(pattern, path)
+		pattern = filepath.ToSlash(pattern)
+
+		// Specific handling for dir/** patterns to match the directory itself
+		if strings.HasSuffix(pattern, "/**") {
+			dirPattern := strings.TrimSuffix(pattern, "/**")
+			if normalizedPath == dirPattern {
+				return true, nil
+			}
+			// Fall through for standard match below
+		}
+
+		// Specific handling for **/<basename_pattern>
+		if strings.HasPrefix(pattern, "**/") {
+			basePattern := strings.TrimPrefix(pattern, "**/")
+			matchedBase, _ := filepath.Match(basePattern, baseName) // Check base name directly
+			if matchedBase {
+				return true, nil
+			}
+			// Fall through for standard match below
+		}
+
+		// Standard match against the full relative path
+		matched, err := filepath.Match(pattern, normalizedPath)
 		if err != nil {
-			// Pattern syntax error - this should ideally be validated earlier,
-			// but we return the error here if encountered.
 			return false, fmt.Errorf("invalid exclude pattern '%s': %w", pattern, err)
 		}
 		if matched {
-			return true, nil // Found a match
+			return true, nil
 		}
 	}
 
-	return false, nil // No patterns matched
+	return false, nil
 }

@@ -35,4 +35,14 @@ rsync:
   # destination: ""
   
   # Additional options for the rsync command
-  # options: "--archive --partial --compress --delete -e 'ssh -p 2222'" 
+  # options: "--archive --partial --compress --delete -e 'ssh -p 2222'"
+
+# --- Logging Configuration (New) ---
+# Path for the log file. If not specified, defaults to 'backup-tool.log' in the current working directory.
+# log_file: "/var/log/backup-tool.log"
+
+# Log rotation settings (requires log_file to be set)
+# log_rotation_max_size_mb: 100 # Max size in megabytes before rotation
+# log_rotation_max_backups: 3    # Max number of old log files to keep
+# log_rotation_max_age_days: 28  # Max number of days to retain old log files
+# log_rotation_compress: false # Compress rotated files using gzip 

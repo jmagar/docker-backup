@@ -20,6 +20,13 @@ type Config struct {
 	Exclude            []string `mapstructure:"exclude"`
 	Verbose            bool     `mapstructure:"verbose"`
 
+	// --- Logging Configuration ---
+	LogFile               string `mapstructure:"log_file"`
+	LogRotationMaxSizeMB  int    `mapstructure:"log_rotation_max_size_mb"`
+	LogRotationMaxBackups int    `mapstructure:"log_rotation_max_backups"`
+	LogRotationMaxAgeDays int    `mapstructure:"log_rotation_max_age_days"`
+	LogRotationCompress   bool   `mapstructure:"log_rotation_compress"`
+
 	Rsync struct {
 		Enabled     bool   `mapstructure:"enabled"`
 		Destination string `mapstructure:"destination"`
@@ -44,6 +51,13 @@ func LoadConfig() (cfg Config, err error) {
 	vp.SetDefault("rsync.options", "--archive --partial --compress --delete")
 	vp.SetDefault("rsync.command", "rsync")
 
+	// --- Logging Defaults
+	vp.SetDefault("log_file", "backup-tool.log") // Default log file in CWD
+	vp.SetDefault("log_rotation_max_size_mb", 100)
+	vp.SetDefault("log_rotation_max_backups", 3)
+	vp.SetDefault("log_rotation_max_age_days", 28)
+	vp.SetDefault("log_rotation_compress", false)
+
 	// --- Flags ---
 	pflag.String("compose-dir", vp.GetString("compose_dir"), "Directory containing docker compose project subfolders")
 	pflag.String("appdata-dir", vp.GetString("appdata_dir"), "Base directory containing application data volumes")
@@ -56,6 +70,7 @@ func LoadConfig() (cfg Config, err error) {
 	pflag.String("rsync-dest", vp.GetString("rsync.destination"), "Rsync destination (e.g., user@host:/path/)")
 	pflag.String("rsync-opts", vp.GetString("rsync.options"), "Additional options for the rsync command")
 	pflag.String("rsync-cmd", vp.GetString("rsync.command"), "Path to the rsync command executable")
+	pflag.String("log-file", vp.GetString("log_file"), "Path to log file (defaults to backup-tool.log in current dir)")
 	configFile := pflag.String("config", "", "Path to configuration file (optional)")
 	pflag.Parse()
 	// Bind flags to viper
@@ -70,6 +85,7 @@ func LoadConfig() (cfg Config, err error) {
 	vp.BindEnv("pull_before_restart", "DOCKER_BACKUP_PULL_BEFORE_RESTART")
 	vp.BindEnv("exclude", "DOCKER_BACKUP_EXCLUDE") // Still might not parse slice correctly, but let's bind it.
 	vp.BindEnv("verbose", "DOCKER_BACKUP_VERBOSE") // Bind this too for consistency
+	vp.BindEnv("log_file", "DOCKER_BACKUP_LOG_FILE")
 
 	// Keep AutomaticEnv for others, but explicitly bound ones should take precedence if found
 	vp.SetEnvPrefix("DOCKER_BACKUP")
@@ -101,7 +117,7 @@ func LoadConfig() (cfg Config, err error) {
 			return cfg, fmt.Errorf("error reading config file '%s': %w", vp.ConfigFileUsed(), err)
 		}
 	} else {
-		log.Printf("Using configuration file: %s\n", vp.ConfigFileUsed())
+		log.Printf("Using configuration file: %s", vp.ConfigFileUsed())
 	}
 	// log.Printf("[DEBUG Config] Viper settings after ReadInConfig:\n%+v\n", vp.AllSettings())
 

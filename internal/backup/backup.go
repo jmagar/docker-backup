@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,6 +14,7 @@ import (
 
 	// Import the util package
 
+	"docker-backup-tool/internal/logutil"
 	"docker-backup-tool/internal/util"
 
 	"gopkg.in/yaml.v3"
@@ -56,19 +56,28 @@ type Service struct {
 
 // ParseVolumes runs `docker compose config` and extracts unique, existing host paths
 // from volume mounts that are prefixed with the specified appdataDir.
-func ParseVolumes(composeFilePath string, appdataDir string) ([]string, error) {
+func ParseVolumes(composeFilePath string, appdataDir string, dockerComposeCmd string) ([]string, error) {
 	composeFileDir := filepath.Dir(composeFilePath)
 
 	// --- Use docker compose config ---
-	cmdArgs := append(composeCommand[1:], "config") // Build args based on detected command
-	cmd := exec.Command(composeCommand[0], cmdArgs...)
+	// Determine base command (docker or docker-compose)
+	var baseCmd string
+	var composeArgs []string
+	if dockerComposeCmd == "docker-compose" {
+		baseCmd = dockerComposeCmd
+		composeArgs = []string{"config"}
+	} else {
+		baseCmd = dockerComposeCmd // Should be "docker"
+		composeArgs = []string{"compose", "config"}
+	}
+	cmd := exec.Command(baseCmd, composeArgs...)
 	cmd.Dir = composeFileDir // Set working directory
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	log.Printf("    Running command: %s %s (in %s)", cmd.Path, strings.Join(cmd.Args[1:], " "), composeFileDir)
+	logutil.Debug("Running compose config cmd in %s: %s", composeFileDir, strings.Join(cmd.Args, " "))
 	err := cmd.Run()
 	if err != nil {
 		// Return specific error if docker compose config fails
@@ -106,11 +115,11 @@ func ParseVolumes(composeFilePath string, appdataDir string) ([]string, error) {
 						if sourceStr, ok := sourceVal.(string); ok {
 							hostPath = sourceStr
 						} else {
-							log.Printf("Warning: Volume entry %d for service '%s' has non-string source. Skipping.", i, serviceName)
+							logutil.Warn("Volume entry %d for service '%s' has non-string source. Skipping.", i, serviceName)
 							continue
 						}
 					} else {
-						log.Printf("Warning: Bind volume entry %d for service '%s' missing source. Skipping.", i, serviceName)
+						logutil.Warn("Bind volume entry %d for service '%s' missing source. Skipping.", i, serviceName)
 						continue
 					}
 				} else {
@@ -118,7 +127,7 @@ func ParseVolumes(composeFilePath string, appdataDir string) ([]string, error) {
 					continue
 				}
 			default:
-				log.Printf("Warning: Unknown volume format in service '%s': %T. Skipping.", serviceName, v)
+				logutil.Warn("Unknown volume format in service '%s': %T. Skipping.", serviceName, v)
 				continue
 			}
 
@@ -129,7 +138,7 @@ func ParseVolumes(composeFilePath string, appdataDir string) ([]string, error) {
 
 			// Check if it's an absolute path (it should be after config resolution)
 			if !filepath.IsAbs(hostPath) {
-				log.Printf("Warning: Resolved host path '%s' from service '%s' is not absolute. Skipping.", hostPath, serviceName)
+				logutil.Warn("Resolved host path '%s' from service '%s' is not absolute. Skipping.", hostPath, serviceName)
 				continue
 			}
 
@@ -143,9 +152,9 @@ func ParseVolumes(composeFilePath string, appdataDir string) ([]string, error) {
 				_, err := os.Stat(cleanedHostPath)
 				if err != nil {
 					if os.IsNotExist(err) {
-						log.Printf("Warning: Resolved appdata path '%s' from service '%s' does not exist. Skipping.\n", cleanedHostPath, serviceName)
+						logutil.Warn("Resolved appdata path '%s' from service '%s' does not exist. Skipping.", cleanedHostPath, serviceName)
 					} else {
-						log.Printf("Warning: Error checking resolved appdata path '%s' from service '%s': %v. Skipping.\n", cleanedHostPath, serviceName, err)
+						logutil.Warn("Error checking resolved appdata path '%s' from service '%s': %v. Skipping.", cleanedHostPath, serviceName, err)
 					}
 					continue
 				}
@@ -180,21 +189,21 @@ func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []str
 	// Ensure cleanup happens even on errors
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("ERROR: Recovered from panic during backup cleanup for %s: %v\n", projectName, r)
+			logutil.Error("Recovered from panic during backup cleanup for %s: %v", projectName, r)
 			// Still attempt removal
 			os.RemoveAll(tempBackupRoot)
 		} else if err != nil {
 			// If CreateBackup returns an error, attempt cleanup
-			log.Printf("Debug: Cleaning up temp dir %s due to error\n", tempBackupRoot)
+			logutil.Debug("Cleaning up temp dir %s due to error", tempBackupRoot)
 			os.RemoveAll(tempBackupRoot)
 		} else {
 			// If CreateBackup succeeds, defer takes care of it
-			log.Printf("Debug: Cleaning up temp dir %s after success\n", tempBackupRoot)
+			logutil.Debug("Cleaning up temp dir %s after success", tempBackupRoot)
 			os.RemoveAll(tempBackupRoot)
 		}
 	}()
 
-	fmt.Printf("  Using temporary directory: %s\n", tempBackupRoot)
+	logutil.Info("Using temporary directory: %s", tempBackupRoot)
 
 	// 2. Prepare Structure in Temp Dir
 	tempComposeTarget := filepath.Join(tempBackupRoot, "compose", projectName)
@@ -210,19 +219,18 @@ func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []str
 	}
 
 	// 3. Copy Compose Directory Contents (Respecting Excludes)
-	fmt.Printf("  Copying compose directory '%s'...\n", projectPath)
+	logutil.Info("Copying compose directory '%s'...", projectPath)
 	if err := copyDirectoryContents(projectPath, tempComposeTarget, excludePatterns); err != nil {
 		return "", fmt.Errorf("failed to copy compose directory contents: %w", err)
 	}
 
 	// 4. Copy Appdata Directory Contents (Respecting Excludes)
 	if len(appdataPaths) > 0 {
-		fmt.Println("  Copying appdata directories...")
+		logutil.Info("Copying appdata directories...")
 		for _, srcPath := range appdataPaths {
 			// Target path preserves the original name inside the temp appdata parent
 			targetPath := filepath.Join(tempAppdataParent, filepath.Base(srcPath))
-			log.Printf("    [DEBUG Appdata Copy] src: %s, dst: %s", srcPath, targetPath)
-			fmt.Printf("    - Copying '%s' to '%s'\n", srcPath, targetPath)
+			logutil.Debug("Copying appdata path '%s' to '%s'", srcPath, targetPath)
 			if err := copyPath(srcPath, targetPath, excludePatterns); err != nil {
 				// Log error but potentially continue? Or fail backup?
 				// For now, let's fail the backup if any appdata copy fails.
@@ -235,8 +243,8 @@ func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []str
 	backupFileName := fmt.Sprintf("%s_%s.zip", projectName, time.Now().Format("20060102"))
 	backupFilePath := filepath.Join(backupDir, backupFileName)
 
-	fmt.Printf("  Creating zip archive: %s\n", backupFilePath)
-	if err := zipDirectory(tempBackupRoot, backupFilePath); err != nil {
+	logutil.Info("Creating zip archive: %s", backupFilePath)
+	if err := zipDirectory(tempBackupRoot, backupFilePath, excludePatterns); err != nil {
 		return "", fmt.Errorf("failed to create zip archive: %w", err)
 	}
 
@@ -269,68 +277,53 @@ func copyPath(src, dst string, excludePatterns []string) error {
 
 // copyDirectoryContents copies the contents of srcDir to dstDir recursively, respecting excludes.
 func copyDirectoryContents(srcDir, dstDir string, excludePatterns []string) error {
-	// Use WalkDir for better handling of directory skipping
 	return filepath.WalkDir(srcDir, func(path string, d fs.DirEntry, err error) error {
-		// 1. Calculate Relative Path early
+		// Basic error handling first
+		if err != nil {
+			logutil.Warn("Error accessing path '%s' during copy walk: %v", path, err)
+			// Attempt to continue if possible, return nil (maybe return err later if needed)
+			return nil
+		}
+
+		// Calculate Relative Path
 		relPath, pathErr := filepath.Rel(srcDir, path)
 		if pathErr != nil {
 			return fmt.Errorf("failed to calculate relative path for %s: %w", path, pathErr)
 		}
 
-		// 2. Check Excludes FIRST using the relative path
-		excluded, patternErr := util.MatchesExclude(relPath, excludePatterns)
-		if patternErr != nil {
-			return fmt.Errorf("exclude pattern error: %w", patternErr) // Invalid pattern stops the walk
-		}
-		if excluded {
-			fmt.Printf("    - Excluding: %s (matches pattern)\n", relPath)
-			// Need to determine if it's a directory to skip. Stat the original path.
-			info, statErr := os.Stat(path) // Use os.Stat on original path
-			if statErr == nil && info.IsDir() {
-				return filepath.SkipDir // Skip the entire directory
-			}
-			// If it's a file or stat failed (but pattern matched), just skip this entry.
-			return nil
-		}
-
-		// 3. Handle initial WalkDir errors (like permission denied)
-		if err != nil {
-			// If the error is permission denied BUT we intended to exclude this path anyway, ignore the error.
-			if os.IsPermission(err) && excluded {
-				// We already logged the exclusion above. Return nil to continue the walk without this item.
-				return nil
-			}
-			// Otherwise, log the error and decide whether to stop.
-			fmt.Fprintf(os.Stderr, "Warning: Error accessing path '%s' during initial walk: %v\n", path, err)
-			// Let's return the error to stop the walk on unexpected access issues.
-			return err
-		}
-
-		// Skip the root source directory itself (can be checked after error/exclude checks)
+		// Skip the root directory itself
 		if relPath == "." {
 			return nil
 		}
 
-		// Target path in the destination directory
+		// Check exclusion
+		excluded, patternErr := util.MatchesExclude(relPath, excludePatterns)
+		if patternErr != nil {
+			return fmt.Errorf("exclude pattern error: %w", patternErr)
+		}
+		if excluded {
+			logutil.Info("Excluding: %s (matches pattern)", relPath)
+			if d.IsDir() {
+				return filepath.SkipDir // Skip the entire directory
+			}
+			return nil // Skip this file
+		}
+
+		// If not excluded and no error, proceed with copy/create dir
 		dstPath := filepath.Join(dstDir, relPath)
 
 		if d.IsDir() {
-			// Create the directory in the destination
-			err := os.MkdirAll(dstPath, 0755) // Use a default mode, d.Type() might fail if err != nil initially
+			err := os.MkdirAll(dstPath, 0755)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Warning: Failed to create directory '%s': %v\n", dstPath, err)
-				// Decide if this should stop the backup? Let's return error for now.
+				logutil.Error("Failed to create directory '%s': %v", dstPath, err)
 				return err
 			}
-			return nil // Successfully created/ensured dir exists
-		}
-
-		// Copy the file
-		err = copyFile(path, dstPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Failed to copy file '%s' to '%s': %v\n", path, dstPath, err)
-			// Return error to stop backup on file copy failure
-			return err
+		} else {
+			err = copyFile(path, dstPath)
+			if err != nil {
+				logutil.Error("Failed to copy file '%s' to '%s': %v", path, dstPath, err)
+				return err
+			}
 		}
 		return nil // Continue walk
 	})
@@ -370,14 +363,15 @@ func copyFile(src, dst string) error {
 	err = os.Chmod(dst, info.Mode())
 	if err != nil {
 		// Log warning, but don't fail the whole copy? Or fail?
-		fmt.Fprintf(os.Stderr, "Warning: Failed to set permissions on '%s': %v\n", dst, err)
+		logutil.Warn("Failed to set permissions on '%s': %v", dst, err)
 	}
 
 	return nil
 }
 
 // zipDirectory creates a zip archive of the source directory's contents.
-func zipDirectory(sourceDir, targetZipFile string) error {
+// Needs to respect exclude patterns too!
+func zipDirectory(sourceDir, targetZipFile string, excludePatterns []string) error {
 	zipFile, err := os.Create(targetZipFile)
 	if err != nil {
 		return fmt.Errorf("failed to create zip file '%s': %w", targetZipFile, err)
@@ -387,21 +381,43 @@ func zipDirectory(sourceDir, targetZipFile string) error {
 	archive := zip.NewWriter(zipFile)
 	defer archive.Close()
 
-	// Walk through the source directory
+	// Walk through the source *temporary* directory
 	err = filepath.WalkDir(sourceDir, func(path string, d fs.DirEntry, err error) error {
+		// Basic error handling
 		if err != nil {
-			return err
+			logutil.Warn("Error accessing '%s' during zip: %v", path, err)
+			return nil // Try to continue zipping other files
+		}
+
+		// Calculate relative path *within* the temp dir (this becomes the zip path)
+		relPath, pathErr := filepath.Rel(sourceDir, path)
+		if pathErr != nil {
+			return fmt.Errorf("failed to calculate relative path for zip entry %s: %w", path, pathErr)
 		}
 
 		// Skip the root directory itself
-		if path == sourceDir {
+		if relPath == "." {
 			return nil
 		}
 
-		// Get header info from file info
+		// Check Excludes for Zipping
+		excluded, patternErr := util.MatchesExclude(relPath, excludePatterns)
+		if patternErr != nil {
+			return fmt.Errorf("exclude pattern error during zip: %w", patternErr)
+		}
+		if excluded {
+			if d.IsDir() {
+				return filepath.SkipDir // Skip excluded directories
+			}
+			return nil // Skip excluded files
+		}
+
+		// If not excluded and no error, proceed with adding to zip
 		info, err := d.Info()
 		if err != nil {
-			return err
+			// Error getting info after already accessing d? Should be rare.
+			logutil.Warn("Error getting file info for '%s' during zip: %v", path, err)
+			return nil // Try to continue
 		}
 
 		header, err := zip.FileInfoHeader(info)
@@ -409,24 +425,15 @@ func zipDirectory(sourceDir, targetZipFile string) error {
 			return err
 		}
 
-		// Set header name to be relative path inside the zip file
-		relPath, err := filepath.Rel(sourceDir, path)
-		if err != nil {
-			return err
-		}
-		header.Name = filepath.ToSlash(relPath) // Use forward slashes for zip standard
-		log.Printf("    [DEBUG Zip] Adding path: %s (Source: %s)", header.Name, path)
+		header.Name = filepath.ToSlash(relPath)
 
-		// Specify compression method
 		header.Method = zip.Deflate
 
-		// Create writer for the file header
 		writer, err := archive.CreateHeader(header)
 		if err != nil {
 			return err
 		}
 
-		// If not a directory, copy file contents
 		if !d.IsDir() {
 			file, err := os.Open(path)
 			if err != nil {
@@ -442,7 +449,6 @@ func zipDirectory(sourceDir, targetZipFile string) error {
 	})
 
 	if err != nil {
-		// If walk failed, attempt to remove the potentially corrupt zip file
 		os.Remove(targetZipFile)
 		return fmt.Errorf("failed during zip creation walk: %w", err)
 	}

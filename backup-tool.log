@@ -1,0 +1,522 @@
+[34m[INFO] [0m2025/04/28 13:17:49 Logging initialized. File: backup-tool.log, Verbose: true, TTY: true
+[34m[INFO] [0m2025/04/28 13:17:49 Using Docker Compose v2+ (docker compose)
+[34m[INFO] [0m2025/04/28 13:17:49 Configuration loaded: {ComposeDir:test-env/compose AppdataDir:test-env/appdata BackupDir:test-env/backups RestartAfterBackup:true PullBeforeRestart:true Exclude:[cache/** .DS_Store .git/** **/*.log node_modules/** tmp/** **/*.tmp **/*.swp **/*~ Thumbs.db .idea/** .vscode/** __pycache__/** *.pyc] Verbose:true LogFile:backup-tool.log LogRotationMaxSizeMB:100 LogRotationMaxBackups:3 LogRotationMaxAgeDays:28 LogRotationCompress:false Rsync:{Enabled:false Destination: Options:--archive --partial --compress --delete Command:rsync}}
+[34m[INFO] [0m2025/04/28 13:17:49 Using Compose Dir: test-env/compose
+[34m[INFO] [0m2025/04/28 13:17:49 Using Appdata Dir: test-env/appdata
+[34m[INFO] [0m2025/04/28 13:17:49 Using Backup Dir : test-env/backups
+[34m[INFO] [0m2025/04/28 13:17:49 Starting project discovery...
+[34m[INFO] [0m2025/04/28 13:17:49 Discovered 10 projects:
+[34m[INFO] [0m2025/04/28 13:17:49 === Processing Project: project-a ===
+[34m[INFO] [0m2025/04/28 13:17:49 [project-a] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:17:49 Running command in test-env/compose/project-a: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:18:01 [project-a] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:18:01 Running command in test-env/compose/project-a: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:18:01 'ps -q' output for test-env/compose/project-a: []
+[34m[INFO] [0m2025/04/28 13:18:01 Stack verified down for project-a.
+[34m[INFO] [0m2025/04/28 13:18:01 [project-a] Parsing compose file test-env/compose/project-a/compose.yml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:18:01 Running compose config cmd in test-env/compose/project-a: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:18:01 [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a]
+[34m[INFO] [0m2025/04/28 13:18:01 Found 1 appdata paths to include.
+[34m[INFO] [0m2025/04/28 13:18:01     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a
+[34m[INFO] [0m2025/04/28 13:18:01 [project-a] Creating backup...
+[34m[INFO] [0m2025/04/28 13:18:01 Using temporary directory: /tmp/docker-backup-project-a-1989529467
+[34m[INFO] [0m2025/04/28 13:18:01 Copying compose directory 'test-env/compose/project-a'...
+[34m[INFO] [0m2025/04/28 13:18:01 Copying appdata directories...
+[35m[DEBUG] [0m2025/04/28 13:18:01 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a' to '/tmp/docker-backup-project-a-1989529467/appdata/project-a'
+[34m[INFO] [0m2025/04/28 13:18:01 Creating zip archive: test-env/backups/project-a_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:18:01 Cleaning up temp dir /tmp/docker-backup-project-a-1989529467 after success
+[32m[SUCCESS] [0m2025/04/28 13:18:01 Successfully created backup: test-env/backups/project-a_20250428.zip
+[34m[INFO] [0m2025/04/28 13:18:01 [project-a] Restart requested.
+[34m[INFO] [0m2025/04/28 13:18:01 [project-a] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:18:01 Running command in test-env/compose/project-a: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:18:02 [project-a] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:18:02 [project-a] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:18:02 Running command in test-env/compose/project-a: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:18:03 [project-a] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:18:03 --- Finished project project-a successfully ---
+[34m[INFO] [0m2025/04/28 13:18:03 === Processing Project: project-b ===
+[34m[INFO] [0m2025/04/28 13:18:03 [project-b] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:18:03 Running command in test-env/compose/project-b: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:18:14 [project-b] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:18:14 Running command in test-env/compose/project-b: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:18:14 'ps -q' output for test-env/compose/project-b: []
+[34m[INFO] [0m2025/04/28 13:18:14 Stack verified down for project-b.
+[34m[INFO] [0m2025/04/28 13:18:14 [project-b] Parsing compose file test-env/compose/project-b/docker-compose.yaml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:18:14 Running compose config cmd in test-env/compose/project-b: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:18:15 [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc1 /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc2]
+[34m[INFO] [0m2025/04/28 13:18:15 Found 2 appdata paths to include.
+[34m[INFO] [0m2025/04/28 13:18:15     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc1
+[34m[INFO] [0m2025/04/28 13:18:15     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc2
+[34m[INFO] [0m2025/04/28 13:18:15 [project-b] Creating backup...
+[34m[INFO] [0m2025/04/28 13:18:15 Using temporary directory: /tmp/docker-backup-project-b-1342716698
+[34m[INFO] [0m2025/04/28 13:18:15 Copying compose directory 'test-env/compose/project-b'...
+[34m[INFO] [0m2025/04/28 13:18:15 Copying appdata directories...
+[35m[DEBUG] [0m2025/04/28 13:18:15 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc1' to '/tmp/docker-backup-project-b-1342716698/appdata/project-b-svc1'
+[35m[DEBUG] [0m2025/04/28 13:18:15 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc2' to '/tmp/docker-backup-project-b-1342716698/appdata/project-b-svc2'
+[34m[INFO] [0m2025/04/28 13:18:15 Creating zip archive: test-env/backups/project-b_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:18:15 Cleaning up temp dir /tmp/docker-backup-project-b-1342716698 after success
+[32m[SUCCESS] [0m2025/04/28 13:18:15 Successfully created backup: test-env/backups/project-b_20250428.zip
+[34m[INFO] [0m2025/04/28 13:18:15 [project-b] Restart requested.
+[34m[INFO] [0m2025/04/28 13:18:15 [project-b] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:18:15 Running command in test-env/compose/project-b: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:18:16 [project-b] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:18:16 [project-b] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:18:16 Running command in test-env/compose/project-b: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:18:17 [project-b] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:18:17 --- Finished project project-b successfully ---
+[34m[INFO] [0m2025/04/28 13:18:17 === Processing Project: project-c ===
+[34m[INFO] [0m2025/04/28 13:18:17 [project-c] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:18:17 Running command in test-env/compose/project-c: /usr/bin/docker compose down
+[31m[ERROR] [0m2025/04/28 13:18:17 Error stopping stack for project project-c: failed to run /usr/bin/docker compose down in test-env/compose/project-c: exit status 1
+Stderr: no configuration file provided: not found
+[33m[WARN] [0m2025/04/28 13:18:17 [project-c] Skipping stack verification because stop command failed.
+[33m[WARN] [0m2025/04/28 13:18:17 [project-c] Skipping volume parsing because previous steps failed.
+[33m[WARN] [0m2025/04/28 13:18:17 [project-c] Skipping backup creation because previous steps failed.
+[34m[INFO] [0m2025/04/28 13:18:17 [project-c] Restart requested.
+[33m[WARN] [0m2025/04/28 13:18:17 [project-c] Skipping restart because previous steps failed.
+[31m[ERROR] [0m2025/04/28 13:18:17 --- Finished project project-c with ERRORS ---
+[34m[INFO] [0m2025/04/28 13:18:17 === Processing Project: project-e ===
+[34m[INFO] [0m2025/04/28 13:18:17 [project-e] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:18:17 Running command in test-env/compose/project-e: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:18:29 [project-e] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:18:29 Running command in test-env/compose/project-e: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:18:29 'ps -q' output for test-env/compose/project-e: []
+[34m[INFO] [0m2025/04/28 13:18:29 Stack verified down for project-e.
+[34m[INFO] [0m2025/04/28 13:18:29 [project-e] Parsing compose file test-env/compose/project-e/compose.yaml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:18:29 Running compose config cmd in test-env/compose/project-e: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:18:29 [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e-nonexistent /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e]
+[34m[INFO] [0m2025/04/28 13:18:29 Found 2 appdata paths to include.
+[34m[INFO] [0m2025/04/28 13:18:29     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e-nonexistent
+[34m[INFO] [0m2025/04/28 13:18:29     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e
+[34m[INFO] [0m2025/04/28 13:18:29 [project-e] Creating backup...
+[34m[INFO] [0m2025/04/28 13:18:29 Using temporary directory: /tmp/docker-backup-project-e-2964262942
+[34m[INFO] [0m2025/04/28 13:18:29 Copying compose directory 'test-env/compose/project-e'...
+[34m[INFO] [0m2025/04/28 13:18:29 Copying appdata directories...
+[35m[DEBUG] [0m2025/04/28 13:18:29 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e-nonexistent' to '/tmp/docker-backup-project-e-2964262942/appdata/project-e-nonexistent'
+[35m[DEBUG] [0m2025/04/28 13:18:29 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e' to '/tmp/docker-backup-project-e-2964262942/appdata/project-e'
+[34m[INFO] [0m2025/04/28 13:18:29 Creating zip archive: test-env/backups/project-e_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:18:29 Cleaning up temp dir /tmp/docker-backup-project-e-2964262942 after success
+[32m[SUCCESS] [0m2025/04/28 13:18:29 Successfully created backup: test-env/backups/project-e_20250428.zip
+[34m[INFO] [0m2025/04/28 13:18:29 [project-e] Restart requested.
+[34m[INFO] [0m2025/04/28 13:18:29 [project-e] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:18:29 Running command in test-env/compose/project-e: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:18:30 [project-e] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:18:30 [project-e] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:18:30 Running command in test-env/compose/project-e: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:18:31 [project-e] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:18:31 --- Finished project project-e successfully ---
+[34m[INFO] [0m2025/04/28 13:18:31 === Processing Project: project-f ===
+[34m[INFO] [0m2025/04/28 13:18:31 [project-f] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:18:31 Running command in test-env/compose/project-f: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:18:41 [project-f] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:18:41 Running command in test-env/compose/project-f: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:18:41 'ps -q' output for test-env/compose/project-f: []
+[34m[INFO] [0m2025/04/28 13:18:41 Stack verified down for project-f.
+[34m[INFO] [0m2025/04/28 13:18:41 [project-f] Parsing compose file test-env/compose/project-f/compose.yml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:18:41 Running compose config cmd in test-env/compose/project-f: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:18:41 [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-f]
+[34m[INFO] [0m2025/04/28 13:18:41 Found 1 appdata paths to include.
+[34m[INFO] [0m2025/04/28 13:18:41     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-f
+[34m[INFO] [0m2025/04/28 13:18:41 [project-f] Creating backup...
+[34m[INFO] [0m2025/04/28 13:18:41 Using temporary directory: /tmp/docker-backup-project-f-2046170088
+[34m[INFO] [0m2025/04/28 13:18:41 Copying compose directory 'test-env/compose/project-f'...
+[34m[INFO] [0m2025/04/28 13:18:41 Excluding: .git (matches pattern)
+[34m[INFO] [0m2025/04/28 13:18:41 Copying appdata directories...
+[35m[DEBUG] [0m2025/04/28 13:18:41 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-f' to '/tmp/docker-backup-project-f-2046170088/appdata/project-f'
+[34m[INFO] [0m2025/04/28 13:18:41 Excluding: cache (matches pattern)
+[34m[INFO] [0m2025/04/28 13:18:41 Excluding: service.log (matches pattern)
+[34m[INFO] [0m2025/04/28 13:18:41 Creating zip archive: test-env/backups/project-f_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:18:41 Cleaning up temp dir /tmp/docker-backup-project-f-2046170088 after success
+[32m[SUCCESS] [0m2025/04/28 13:18:41 Successfully created backup: test-env/backups/project-f_20250428.zip
+[34m[INFO] [0m2025/04/28 13:18:41 [project-f] Restart requested.
+[34m[INFO] [0m2025/04/28 13:18:41 [project-f] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:18:41 Running command in test-env/compose/project-f: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:18:42 [project-f] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:18:42 [project-f] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:18:42 Running command in test-env/compose/project-f: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:18:43 [project-f] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:18:43 --- Finished project project-f successfully ---
+[34m[INFO] [0m2025/04/28 13:18:43 === Processing Project: project-g ===
+[34m[INFO] [0m2025/04/28 13:18:43 [project-g] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:18:43 Running command in test-env/compose/project-g: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:18:54 [project-g] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:18:54 Running command in test-env/compose/project-g: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:18:54 'ps -q' output for test-env/compose/project-g: []
+[34m[INFO] [0m2025/04/28 13:18:54 Stack verified down for project-g.
+[34m[INFO] [0m2025/04/28 13:18:54 [project-g] Parsing compose file test-env/compose/project-g/compose.yml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:18:54 Running compose config cmd in test-env/compose/project-g: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:18:54 [DEBUG Appdata] Parsed appdata paths: []
+[34m[INFO] [0m2025/04/28 13:18:54 [project-g] Creating backup...
+[34m[INFO] [0m2025/04/28 13:18:54 Using temporary directory: /tmp/docker-backup-project-g-251931513
+[34m[INFO] [0m2025/04/28 13:18:54 Copying compose directory 'test-env/compose/project-g'...
+[34m[INFO] [0m2025/04/28 13:18:54 Creating zip archive: test-env/backups/project-g_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:18:54 Cleaning up temp dir /tmp/docker-backup-project-g-251931513 after success
+[32m[SUCCESS] [0m2025/04/28 13:18:54 Successfully created backup: test-env/backups/project-g_20250428.zip
+[34m[INFO] [0m2025/04/28 13:18:54 [project-g] Restart requested.
+[34m[INFO] [0m2025/04/28 13:18:54 [project-g] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:18:54 Running command in test-env/compose/project-g: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:18:55 [project-g] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:18:55 [project-g] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:18:55 Running command in test-env/compose/project-g: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:18:56 [project-g] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:18:56 --- Finished project project-g successfully ---
+[34m[INFO] [0m2025/04/28 13:18:56 === Processing Project: project-h ===
+[34m[INFO] [0m2025/04/28 13:18:56 [project-h] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:18:56 Running command in test-env/compose/project-h: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:19:07 [project-h] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:19:07 Running command in test-env/compose/project-h: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:19:07 'ps -q' output for test-env/compose/project-h: []
+[34m[INFO] [0m2025/04/28 13:19:07 Stack verified down for project-h.
+[34m[INFO] [0m2025/04/28 13:19:07 [project-h] Parsing compose file test-env/compose/project-h/compose.yml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:19:07 Running compose config cmd in test-env/compose/project-h: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:19:07 [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-h]
+[34m[INFO] [0m2025/04/28 13:19:07 Found 1 appdata paths to include.
+[34m[INFO] [0m2025/04/28 13:19:07     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-h
+[34m[INFO] [0m2025/04/28 13:19:07 [project-h] Creating backup...
+[34m[INFO] [0m2025/04/28 13:19:07 Using temporary directory: /tmp/docker-backup-project-h-2572080466
+[34m[INFO] [0m2025/04/28 13:19:07 Copying compose directory 'test-env/compose/project-h'...
+[34m[INFO] [0m2025/04/28 13:19:07 Copying appdata directories...
+[35m[DEBUG] [0m2025/04/28 13:19:07 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-h' to '/tmp/docker-backup-project-h-2572080466/appdata/project-h'
+[34m[INFO] [0m2025/04/28 13:19:07 Creating zip archive: test-env/backups/project-h_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:19:07 Cleaning up temp dir /tmp/docker-backup-project-h-2572080466 after success
+[32m[SUCCESS] [0m2025/04/28 13:19:07 Successfully created backup: test-env/backups/project-h_20250428.zip
+[34m[INFO] [0m2025/04/28 13:19:07 [project-h] Restart requested.
+[34m[INFO] [0m2025/04/28 13:19:07 [project-h] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:19:07 Running command in test-env/compose/project-h: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:19:07 [project-h] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:19:07 [project-h] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:19:07 Running command in test-env/compose/project-h: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:19:08 [project-h] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:19:08 --- Finished project project-h successfully ---
+[34m[INFO] [0m2025/04/28 13:19:08 === Processing Project: project-i ===
+[34m[INFO] [0m2025/04/28 13:19:08 [project-i] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:19:08 Running command in test-env/compose/project-i: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:19:19 [project-i] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:19:19 Running command in test-env/compose/project-i: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:19:19 'ps -q' output for test-env/compose/project-i: []
+[34m[INFO] [0m2025/04/28 13:19:19 Stack verified down for project-i.
+[34m[INFO] [0m2025/04/28 13:19:19 [project-i] Parsing compose file test-env/compose/project-i/compose.yml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:19:19 Running compose config cmd in test-env/compose/project-i: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:19:19 [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-i]
+[34m[INFO] [0m2025/04/28 13:19:19 Found 1 appdata paths to include.
+[34m[INFO] [0m2025/04/28 13:19:19     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-i
+[34m[INFO] [0m2025/04/28 13:19:19 [project-i] Creating backup...
+[34m[INFO] [0m2025/04/28 13:19:19 Using temporary directory: /tmp/docker-backup-project-i-1725550391
+[34m[INFO] [0m2025/04/28 13:19:19 Copying compose directory 'test-env/compose/project-i'...
+[34m[INFO] [0m2025/04/28 13:19:19 Copying appdata directories...
+[35m[DEBUG] [0m2025/04/28 13:19:19 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-i' to '/tmp/docker-backup-project-i-1725550391/appdata/project-i'
+[34m[INFO] [0m2025/04/28 13:19:19 Creating zip archive: test-env/backups/project-i_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:19:19 Cleaning up temp dir /tmp/docker-backup-project-i-1725550391 after success
+[32m[SUCCESS] [0m2025/04/28 13:19:19 Successfully created backup: test-env/backups/project-i_20250428.zip
+[34m[INFO] [0m2025/04/28 13:19:19 [project-i] Restart requested.
+[34m[INFO] [0m2025/04/28 13:19:19 [project-i] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:19:19 Running command in test-env/compose/project-i: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:19:20 [project-i] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:19:20 [project-i] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:19:20 Running command in test-env/compose/project-i: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:19:21 [project-i] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:19:21 --- Finished project project-i successfully ---
+[34m[INFO] [0m2025/04/28 13:19:21 === Processing Project: project-j ===
+[34m[INFO] [0m2025/04/28 13:19:21 [project-j] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:19:21 Running command in test-env/compose/project-j: /usr/bin/docker compose down
+[34m[INFO] [0m2025/04/28 13:19:32 [project-j] Verifying stack is down...
+[35m[DEBUG] [0m2025/04/28 13:19:32 Running command in test-env/compose/project-j: /usr/bin/docker compose ps -q
+[35m[DEBUG] [0m2025/04/28 13:19:32 'ps -q' output for test-env/compose/project-j: []
+[34m[INFO] [0m2025/04/28 13:19:32 Stack verified down for project-j.
+[34m[INFO] [0m2025/04/28 13:19:32 [project-j] Parsing compose file test-env/compose/project-j/compose.yml for appdata volumes...
+[35m[DEBUG] [0m2025/04/28 13:19:32 Running compose config cmd in test-env/compose/project-j: /usr/bin/docker compose config
+[35m[DEBUG] [0m2025/04/28 13:19:32 [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-j]
+[34m[INFO] [0m2025/04/28 13:19:32 Found 1 appdata paths to include.
+[34m[INFO] [0m2025/04/28 13:19:32     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-j
+[34m[INFO] [0m2025/04/28 13:19:32 [project-j] Creating backup...
+[34m[INFO] [0m2025/04/28 13:19:32 Using temporary directory: /tmp/docker-backup-project-j-2868838950
+[34m[INFO] [0m2025/04/28 13:19:32 Copying compose directory 'test-env/compose/project-j'...
+[34m[INFO] [0m2025/04/28 13:19:32 Copying appdata directories...
+[35m[DEBUG] [0m2025/04/28 13:19:32 Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-j' to '/tmp/docker-backup-project-j-2868838950/appdata/project-j'
+[34m[INFO] [0m2025/04/28 13:19:32 Creating zip archive: test-env/backups/project-j_20250428.zip
+[35m[DEBUG] [0m2025/04/28 13:19:32 Cleaning up temp dir /tmp/docker-backup-project-j-2868838950 after success
+[32m[SUCCESS] [0m2025/04/28 13:19:32 Successfully created backup: test-env/backups/project-j_20250428.zip
+[34m[INFO] [0m2025/04/28 13:19:32 [project-j] Restart requested.
+[34m[INFO] [0m2025/04/28 13:19:32 [project-j] Pulling latest images...
+[35m[DEBUG] [0m2025/04/28 13:19:32 Running command in test-env/compose/project-j: /usr/bin/docker compose pull
+[34m[INFO] [0m2025/04/28 13:19:33 [project-j] Image pull successful.
+[34m[INFO] [0m2025/04/28 13:19:33 [project-j] Starting stack...
+[35m[DEBUG] [0m2025/04/28 13:19:33 Running command in test-env/compose/project-j: /usr/bin/docker compose up -d
+[32m[SUCCESS] [0m2025/04/28 13:19:34 [project-j] Stack started successfully.
+[32m[SUCCESS] [0m2025/04/28 13:19:34 --- Finished project project-j successfully ---
+[34m[INFO] [0m2025/04/28 13:19:34 === Processing Project: project-k ===
+[34m[INFO] [0m2025/04/28 13:19:34 [project-k] Stopping stack...
+[35m[DEBUG] [0m2025/04/28 13:19:34 Running command in test-env/compose/project-k: /usr/bin/docker compose down
+[31m[ERROR] [0m2025/04/28 13:19:34 Error stopping stack for project project-k: failed to run /usr/bin/docker compose down in test-env/compose/project-k: exit status 1
+Stderr: no configuration file provided: not found
+[33m[WARN] [0m2025/04/28 13:19:34 [project-k] Skipping stack verification because stop command failed.
+[33m[WARN] [0m2025/04/28 13:19:34 [project-k] Skipping volume parsing because previous steps failed.
+[33m[WARN] [0m2025/04/28 13:19:34 [project-k] Skipping backup creation because previous steps failed.
+[34m[INFO] [0m2025/04/28 13:19:34 [project-k] Restart requested.
+[33m[WARN] [0m2025/04/28 13:19:34 [project-k] Skipping restart because previous steps failed.
+[31m[ERROR] [0m2025/04/28 13:19:34 --- Finished project project-k with ERRORS ---
+[34m[INFO] [0m2025/04/28 13:19:34 =============================
+[34m[INFO] [0m2025/04/28 13:19:34 Backup process finished. Successful: 8, Failed: 2
+[34m[INFO] [0m2025/04/28 13:19:34 =============================
+[33m[WARN] [0m2025/04/28 13:19:34 One or more projects failed to back up correctly. Check logs above.
+[2025/04/28 01:29:10 PM] Logging initialized. File: backup-tool.log, Verbose: true, TTY: true
+[2025/04/28 01:29:10 PM] Using Docker Compose v2+ (docker compose)
+[2025/04/28 01:29:10 PM] Configuration loaded: {ComposeDir:test-env/compose AppdataDir:test-env/appdata BackupDir:test-env/backups RestartAfterBackup:true PullBeforeRestart:true Exclude:[cache/** .DS_Store .git/** **/*.log node_modules/** tmp/** **/*.tmp **/*.swp **/*~ Thumbs.db .idea/** .vscode/** __pycache__/** *.pyc] Verbose:true LogFile:backup-tool.log LogRotationMaxSizeMB:100 LogRotationMaxBackups:3 LogRotationMaxAgeDays:28 LogRotationCompress:false Rsync:{Enabled:false Destination: Options:--archive --partial --compress --delete Command:rsync}}
+[2025/04/28 01:29:10 PM] Using Compose Dir: test-env/compose
+[2025/04/28 01:29:10 PM] Using Appdata Dir: test-env/appdata
+[2025/04/28 01:29:10 PM] Using Backup Dir : test-env/backups
+[2025/04/28 01:29:10 PM] Starting project discovery...
+[2025/04/28 01:29:10 PM] Discovered 10 projects:
+[2025/04/28 01:29:10 PM] === Processing Project: project-a ===
+[2025/04/28 01:29:10 PM] [project-a] Stopping stack...
+[2025/04/28 01:29:10 PM] Running command in test-env/compose/project-a: /usr/bin/docker compose down
+[2025/04/28 01:29:20 PM] [project-a] Verifying stack is down...
+[2025/04/28 01:29:20 PM] Running command in test-env/compose/project-a: /usr/bin/docker compose ps -q
+[2025/04/28 01:29:21 PM] 'ps -q' output for test-env/compose/project-a: []
+[2025/04/28 01:29:21 PM] Stack verified down for project-a.
+[2025/04/28 01:29:21 PM] [project-a] Parsing compose file test-env/compose/project-a/compose.yml for appdata volumes...
+[2025/04/28 01:29:21 PM] Running compose config cmd in test-env/compose/project-a: /usr/bin/docker compose config
+[2025/04/28 01:29:21 PM] [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a]
+[2025/04/28 01:29:21 PM] Found 1 appdata paths to include.
+[2025/04/28 01:29:21 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a
+[2025/04/28 01:29:21 PM] [project-a] Creating backup...
+[2025/04/28 01:29:21 PM] Using temporary directory: /tmp/docker-backup-project-a-2405398996
+[2025/04/28 01:29:21 PM] Copying compose directory 'test-env/compose/project-a'...
+[2025/04/28 01:29:21 PM] Copying appdata directories...
+[2025/04/28 01:29:21 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a' to '/tmp/docker-backup-project-a-2405398996/appdata/project-a'
+[2025/04/28 01:29:21 PM] Creating zip archive: test-env/backups/project-a_20250428.zip
+[2025/04/28 01:29:21 PM] Cleaning up temp dir /tmp/docker-backup-project-a-2405398996 after success
+[2025/04/28 01:29:21 PM] Successfully created backup: test-env/backups/project-a_20250428.zip
+[2025/04/28 01:29:21 PM] [project-a] Restart requested.
+[2025/04/28 01:29:21 PM] [project-a] Pulling latest images...
+[2025/04/28 01:29:21 PM] Running command in test-env/compose/project-a: /usr/bin/docker compose pull
+[2025/04/28 01:29:22 PM] [project-a] Image pull successful.
+[2025/04/28 01:29:22 PM] [project-a] Starting stack...
+[2025/04/28 01:29:22 PM] Running command in test-env/compose/project-a: /usr/bin/docker compose up -d
+[2025/04/28 01:29:23 PM] [project-a] Stack started successfully.
+[2025/04/28 01:29:23 PM] --- Finished project project-a successfully ---
+[2025/04/28 01:29:23 PM] === Processing Project: project-b ===
+[2025/04/28 01:29:23 PM] [project-b] Stopping stack...
+[2025/04/28 01:29:23 PM] Running command in test-env/compose/project-b: /usr/bin/docker compose down
+[2025/04/28 01:29:34 PM] [project-b] Verifying stack is down...
+[2025/04/28 01:29:34 PM] Running command in test-env/compose/project-b: /usr/bin/docker compose ps -q
+[2025/04/28 01:29:34 PM] 'ps -q' output for test-env/compose/project-b: []
+[2025/04/28 01:29:34 PM] Stack verified down for project-b.
+[2025/04/28 01:29:34 PM] [project-b] Parsing compose file test-env/compose/project-b/docker-compose.yaml for appdata volumes...
+[2025/04/28 01:29:34 PM] Running compose config cmd in test-env/compose/project-b: /usr/bin/docker compose config
+[2025/04/28 01:29:34 PM] [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc1 /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc2]
+[2025/04/28 01:29:34 PM] Found 2 appdata paths to include.
+[2025/04/28 01:29:34 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc1
+[2025/04/28 01:29:34 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc2
+[2025/04/28 01:29:34 PM] [project-b] Creating backup...
+[2025/04/28 01:29:34 PM] Using temporary directory: /tmp/docker-backup-project-b-1880657194
+[2025/04/28 01:29:34 PM] Copying compose directory 'test-env/compose/project-b'...
+[2025/04/28 01:29:34 PM] Copying appdata directories...
+[2025/04/28 01:29:34 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc1' to '/tmp/docker-backup-project-b-1880657194/appdata/project-b-svc1'
+[2025/04/28 01:29:34 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc2' to '/tmp/docker-backup-project-b-1880657194/appdata/project-b-svc2'
+[2025/04/28 01:29:34 PM] Creating zip archive: test-env/backups/project-b_20250428.zip
+[2025/04/28 01:29:34 PM] Cleaning up temp dir /tmp/docker-backup-project-b-1880657194 after success
+[2025/04/28 01:29:34 PM] Successfully created backup: test-env/backups/project-b_20250428.zip
+[2025/04/28 01:29:34 PM] [project-b] Restart requested.
+[2025/04/28 01:29:34 PM] [project-b] Pulling latest images...
+[2025/04/28 01:29:34 PM] Running command in test-env/compose/project-b: /usr/bin/docker compose pull
+[2025/04/28 01:29:35 PM] [project-b] Image pull successful.
+[2025/04/28 01:29:35 PM] [project-b] Starting stack...
+[2025/04/28 01:29:35 PM] Running command in test-env/compose/project-b: /usr/bin/docker compose up -d
+[2025/04/28 01:29:36 PM] [project-b] Stack started successfully.
+[2025/04/28 01:29:36 PM] --- Finished project project-b successfully ---
+[2025/04/28 01:29:36 PM] === Processing Project: project-c ===
+[2025/04/28 01:29:36 PM] [project-c] Stopping stack...
+[2025/04/28 01:29:36 PM] Running command in test-env/compose/project-c: /usr/bin/docker compose down
+[2025/04/28 01:29:36 PM] Error stopping stack for project project-c: failed to run /usr/bin/docker compose down in test-env/compose/project-c: exit status 1
+Stderr: no configuration file provided: not found
+[2025/04/28 01:29:36 PM] [project-c] Skipping stack verification because stop command failed.
+[2025/04/28 01:29:36 PM] [project-c] Skipping volume parsing because previous steps failed.
+[2025/04/28 01:29:36 PM] [project-c] Skipping backup creation because previous steps failed.
+[2025/04/28 01:29:36 PM] [project-c] Restart requested.
+[2025/04/28 01:29:36 PM] [project-c] Skipping restart because previous steps failed.
+[2025/04/28 01:29:36 PM] --- Finished project project-c with ERRORS ---
+[2025/04/28 01:29:36 PM] === Processing Project: project-e ===
+[2025/04/28 01:29:36 PM] [project-e] Stopping stack...
+[2025/04/28 01:29:36 PM] Running command in test-env/compose/project-e: /usr/bin/docker compose down
+[2025/04/28 01:29:46 PM] [project-e] Verifying stack is down...
+[2025/04/28 01:29:46 PM] Running command in test-env/compose/project-e: /usr/bin/docker compose ps -q
+[2025/04/28 01:29:46 PM] 'ps -q' output for test-env/compose/project-e: []
+[2025/04/28 01:29:46 PM] Stack verified down for project-e.
+[2025/04/28 01:29:46 PM] [project-e] Parsing compose file test-env/compose/project-e/compose.yaml for appdata volumes...
+[2025/04/28 01:29:46 PM] Running compose config cmd in test-env/compose/project-e: /usr/bin/docker compose config
+[2025/04/28 01:29:46 PM] [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e-nonexistent /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e]
+[2025/04/28 01:29:46 PM] Found 2 appdata paths to include.
+[2025/04/28 01:29:46 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e-nonexistent
+[2025/04/28 01:29:46 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e
+[2025/04/28 01:29:46 PM] [project-e] Creating backup...
+[2025/04/28 01:29:46 PM] Using temporary directory: /tmp/docker-backup-project-e-2857000484
+[2025/04/28 01:29:46 PM] Copying compose directory 'test-env/compose/project-e'...
+[2025/04/28 01:29:46 PM] Copying appdata directories...
+[2025/04/28 01:29:46 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e-nonexistent' to '/tmp/docker-backup-project-e-2857000484/appdata/project-e-nonexistent'
+[2025/04/28 01:29:46 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e' to '/tmp/docker-backup-project-e-2857000484/appdata/project-e'
+[2025/04/28 01:29:46 PM] Creating zip archive: test-env/backups/project-e_20250428.zip
+[2025/04/28 01:29:46 PM] Cleaning up temp dir /tmp/docker-backup-project-e-2857000484 after success
+[2025/04/28 01:29:46 PM] Successfully created backup: test-env/backups/project-e_20250428.zip
+[2025/04/28 01:29:46 PM] [project-e] Restart requested.
+[2025/04/28 01:29:46 PM] [project-e] Pulling latest images...
+[2025/04/28 01:29:46 PM] Running command in test-env/compose/project-e: /usr/bin/docker compose pull
+[2025/04/28 01:29:47 PM] [project-e] Image pull successful.
+[2025/04/28 01:29:47 PM] [project-e] Starting stack...
+[2025/04/28 01:29:47 PM] Running command in test-env/compose/project-e: /usr/bin/docker compose up -d
+[2025/04/28 01:29:48 PM] [project-e] Stack started successfully.
+[2025/04/28 01:29:48 PM] --- Finished project project-e successfully ---
+[2025/04/28 01:29:48 PM] === Processing Project: project-f ===
+[2025/04/28 01:29:48 PM] [project-f] Stopping stack...
+[2025/04/28 01:29:48 PM] Running command in test-env/compose/project-f: /usr/bin/docker compose down
+[2025/04/28 01:29:59 PM] [project-f] Verifying stack is down...
+[2025/04/28 01:29:59 PM] Running command in test-env/compose/project-f: /usr/bin/docker compose ps -q
+[2025/04/28 01:29:59 PM] 'ps -q' output for test-env/compose/project-f: []
+[2025/04/28 01:29:59 PM] Stack verified down for project-f.
+[2025/04/28 01:29:59 PM] [project-f] Parsing compose file test-env/compose/project-f/compose.yml for appdata volumes...
+[2025/04/28 01:29:59 PM] Running compose config cmd in test-env/compose/project-f: /usr/bin/docker compose config
+[2025/04/28 01:29:59 PM] [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-f]
+[2025/04/28 01:29:59 PM] Found 1 appdata paths to include.
+[2025/04/28 01:29:59 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-f
+[2025/04/28 01:29:59 PM] [project-f] Creating backup...
+[2025/04/28 01:29:59 PM] Using temporary directory: /tmp/docker-backup-project-f-3400732079
+[2025/04/28 01:29:59 PM] Copying compose directory 'test-env/compose/project-f'...
+[2025/04/28 01:29:59 PM] Excluding: .git (matches pattern)
+[2025/04/28 01:29:59 PM] Copying appdata directories...
+[2025/04/28 01:29:59 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-f' to '/tmp/docker-backup-project-f-3400732079/appdata/project-f'
+[2025/04/28 01:29:59 PM] Excluding: cache (matches pattern)
+[2025/04/28 01:29:59 PM] Excluding: service.log (matches pattern)
+[2025/04/28 01:29:59 PM] Creating zip archive: test-env/backups/project-f_20250428.zip
+[2025/04/28 01:29:59 PM] Cleaning up temp dir /tmp/docker-backup-project-f-3400732079 after success
+[2025/04/28 01:29:59 PM] Successfully created backup: test-env/backups/project-f_20250428.zip
+[2025/04/28 01:29:59 PM] [project-f] Restart requested.
+[2025/04/28 01:29:59 PM] [project-f] Pulling latest images...
+[2025/04/28 01:29:59 PM] Running command in test-env/compose/project-f: /usr/bin/docker compose pull
+[2025/04/28 01:30:00 PM] [project-f] Image pull successful.
+[2025/04/28 01:30:00 PM] [project-f] Starting stack...
+[2025/04/28 01:30:00 PM] Running command in test-env/compose/project-f: /usr/bin/docker compose up -d
+[2025/04/28 01:30:01 PM] [project-f] Stack started successfully.
+[2025/04/28 01:30:01 PM] --- Finished project project-f successfully ---
+[2025/04/28 01:30:01 PM] === Processing Project: project-g ===
+[2025/04/28 01:30:01 PM] [project-g] Stopping stack...
+[2025/04/28 01:30:01 PM] Running command in test-env/compose/project-g: /usr/bin/docker compose down
+[2025/04/28 01:30:12 PM] [project-g] Verifying stack is down...
+[2025/04/28 01:30:12 PM] Running command in test-env/compose/project-g: /usr/bin/docker compose ps -q
+[2025/04/28 01:30:12 PM] 'ps -q' output for test-env/compose/project-g: []
+[2025/04/28 01:30:12 PM] Stack verified down for project-g.
+[2025/04/28 01:30:12 PM] [project-g] Parsing compose file test-env/compose/project-g/compose.yml for appdata volumes...
+[2025/04/28 01:30:12 PM] Running compose config cmd in test-env/compose/project-g: /usr/bin/docker compose config
+[2025/04/28 01:30:12 PM] [DEBUG Appdata] Parsed appdata paths: []
+[2025/04/28 01:30:12 PM] [project-g] Creating backup...
+[2025/04/28 01:30:12 PM] Using temporary directory: /tmp/docker-backup-project-g-691660944
+[2025/04/28 01:30:12 PM] Copying compose directory 'test-env/compose/project-g'...
+[2025/04/28 01:30:12 PM] Creating zip archive: test-env/backups/project-g_20250428.zip
+[2025/04/28 01:30:12 PM] Cleaning up temp dir /tmp/docker-backup-project-g-691660944 after success
+[2025/04/28 01:30:12 PM] Successfully created backup: test-env/backups/project-g_20250428.zip
+[2025/04/28 01:30:12 PM] [project-g] Restart requested.
+[2025/04/28 01:30:12 PM] [project-g] Pulling latest images...
+[2025/04/28 01:30:12 PM] Running command in test-env/compose/project-g: /usr/bin/docker compose pull
+[2025/04/28 01:30:14 PM] [project-g] Image pull successful.
+[2025/04/28 01:30:14 PM] [project-g] Starting stack...
+[2025/04/28 01:30:14 PM] Running command in test-env/compose/project-g: /usr/bin/docker compose up -d
+[2025/04/28 01:30:14 PM] [project-g] Stack started successfully.
+[2025/04/28 01:30:14 PM] --- Finished project project-g successfully ---
+[2025/04/28 01:30:14 PM] === Processing Project: project-h ===
+[2025/04/28 01:30:14 PM] [project-h] Stopping stack...
+[2025/04/28 01:30:14 PM] Running command in test-env/compose/project-h: /usr/bin/docker compose down
+[2025/04/28 01:30:24 PM] [project-h] Verifying stack is down...
+[2025/04/28 01:30:24 PM] Running command in test-env/compose/project-h: /usr/bin/docker compose ps -q
+[2025/04/28 01:30:25 PM] 'ps -q' output for test-env/compose/project-h: []
+[2025/04/28 01:30:25 PM] Stack verified down for project-h.
+[2025/04/28 01:30:25 PM] [project-h] Parsing compose file test-env/compose/project-h/compose.yml for appdata volumes...
+[2025/04/28 01:30:25 PM] Running compose config cmd in test-env/compose/project-h: /usr/bin/docker compose config
+[2025/04/28 01:30:25 PM] [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-h]
+[2025/04/28 01:30:25 PM] Found 1 appdata paths to include.
+[2025/04/28 01:30:25 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-h
+[2025/04/28 01:30:25 PM] [project-h] Creating backup...
+[2025/04/28 01:30:25 PM] Using temporary directory: /tmp/docker-backup-project-h-1609049022
+[2025/04/28 01:30:25 PM] Copying compose directory 'test-env/compose/project-h'...
+[2025/04/28 01:30:25 PM] Copying appdata directories...
+[2025/04/28 01:30:25 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-h' to '/tmp/docker-backup-project-h-1609049022/appdata/project-h'
+[2025/04/28 01:30:25 PM] Creating zip archive: test-env/backups/project-h_20250428.zip
+[2025/04/28 01:30:25 PM] Cleaning up temp dir /tmp/docker-backup-project-h-1609049022 after success
+[2025/04/28 01:30:25 PM] Successfully created backup: test-env/backups/project-h_20250428.zip
+[2025/04/28 01:30:25 PM] [project-h] Restart requested.
+[2025/04/28 01:30:25 PM] [project-h] Pulling latest images...
+[2025/04/28 01:30:25 PM] Running command in test-env/compose/project-h: /usr/bin/docker compose pull
+[2025/04/28 01:30:26 PM] [project-h] Image pull successful.
+[2025/04/28 01:30:26 PM] [project-h] Starting stack...
+[2025/04/28 01:30:26 PM] Running command in test-env/compose/project-h: /usr/bin/docker compose up -d
+[2025/04/28 01:30:26 PM] [project-h] Stack started successfully.
+[2025/04/28 01:30:26 PM] --- Finished project project-h successfully ---
+[2025/04/28 01:30:26 PM] === Processing Project: project-i ===
+[2025/04/28 01:30:26 PM] [project-i] Stopping stack...
+[2025/04/28 01:30:26 PM] Running command in test-env/compose/project-i: /usr/bin/docker compose down
+[2025/04/28 01:30:37 PM] [project-i] Verifying stack is down...
+[2025/04/28 01:30:37 PM] Running command in test-env/compose/project-i: /usr/bin/docker compose ps -q
+[2025/04/28 01:30:37 PM] 'ps -q' output for test-env/compose/project-i: []
+[2025/04/28 01:30:37 PM] Stack verified down for project-i.
+[2025/04/28 01:30:37 PM] [project-i] Parsing compose file test-env/compose/project-i/compose.yml for appdata volumes...
+[2025/04/28 01:30:37 PM] Running compose config cmd in test-env/compose/project-i: /usr/bin/docker compose config
+[2025/04/28 01:30:38 PM] [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-i]
+[2025/04/28 01:30:38 PM] Found 1 appdata paths to include.
+[2025/04/28 01:30:38 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-i
+[2025/04/28 01:30:38 PM] [project-i] Creating backup...
+[2025/04/28 01:30:38 PM] Using temporary directory: /tmp/docker-backup-project-i-1942266851
+[2025/04/28 01:30:38 PM] Copying compose directory 'test-env/compose/project-i'...
+[2025/04/28 01:30:38 PM] Copying appdata directories...
+[2025/04/28 01:30:38 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-i' to '/tmp/docker-backup-project-i-1942266851/appdata/project-i'
+[2025/04/28 01:30:38 PM] Creating zip archive: test-env/backups/project-i_20250428.zip
+[2025/04/28 01:30:38 PM] Cleaning up temp dir /tmp/docker-backup-project-i-1942266851 after success
+[2025/04/28 01:30:38 PM] Successfully created backup: test-env/backups/project-i_20250428.zip
+[2025/04/28 01:30:38 PM] [project-i] Restart requested.
+[2025/04/28 01:30:38 PM] [project-i] Pulling latest images...
+[2025/04/28 01:30:38 PM] Running command in test-env/compose/project-i: /usr/bin/docker compose pull
+[2025/04/28 01:30:39 PM] [project-i] Image pull successful.
+[2025/04/28 01:30:39 PM] [project-i] Starting stack...
+[2025/04/28 01:30:39 PM] Running command in test-env/compose/project-i: /usr/bin/docker compose up -d
+[2025/04/28 01:30:39 PM] [project-i] Stack started successfully.
+[2025/04/28 01:30:39 PM] --- Finished project project-i successfully ---
+[2025/04/28 01:30:39 PM] === Processing Project: project-j ===
+[2025/04/28 01:30:39 PM] [project-j] Stopping stack...
+[2025/04/28 01:30:39 PM] Running command in test-env/compose/project-j: /usr/bin/docker compose down
+[2025/04/28 01:30:50 PM] [project-j] Verifying stack is down...
+[2025/04/28 01:30:50 PM] Running command in test-env/compose/project-j: /usr/bin/docker compose ps -q
+[2025/04/28 01:30:50 PM] 'ps -q' output for test-env/compose/project-j: []
+[2025/04/28 01:30:50 PM] Stack verified down for project-j.
+[2025/04/28 01:30:50 PM] [project-j] Parsing compose file test-env/compose/project-j/compose.yml for appdata volumes...
+[2025/04/28 01:30:50 PM] Running compose config cmd in test-env/compose/project-j: /usr/bin/docker compose config
+[2025/04/28 01:30:50 PM] [DEBUG Appdata] Parsed appdata paths: [/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-j]
+[2025/04/28 01:30:50 PM] Found 1 appdata paths to include.
+[2025/04/28 01:30:50 PM]     - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-j
+[2025/04/28 01:30:50 PM] [project-j] Creating backup...
+[2025/04/28 01:30:50 PM] Using temporary directory: /tmp/docker-backup-project-j-4209385592
+[2025/04/28 01:30:50 PM] Copying compose directory 'test-env/compose/project-j'...
+[2025/04/28 01:30:50 PM] Copying appdata directories...
+[2025/04/28 01:30:50 PM] Copying appdata path '/home/jmagar/code/scripts/docker-backup/test-env/appdata/project-j' to '/tmp/docker-backup-project-j-4209385592/appdata/project-j'
+[2025/04/28 01:30:50 PM] Creating zip archive: test-env/backups/project-j_20250428.zip
+[2025/04/28 01:30:50 PM] Cleaning up temp dir /tmp/docker-backup-project-j-4209385592 after success
+[2025/04/28 01:30:50 PM] Successfully created backup: test-env/backups/project-j_20250428.zip
+[2025/04/28 01:30:50 PM] [project-j] Restart requested.
+[2025/04/28 01:30:50 PM] [project-j] Pulling latest images...
+[2025/04/28 01:30:50 PM] Running command in test-env/compose/project-j: /usr/bin/docker compose pull
+[2025/04/28 01:30:51 PM] [project-j] Image pull successful.
+[2025/04/28 01:30:51 PM] [project-j] Starting stack...
+[2025/04/28 01:30:51 PM] Running command in test-env/compose/project-j: /usr/bin/docker compose up -d
+[2025/04/28 01:30:52 PM] [project-j] Stack started successfully.
+[2025/04/28 01:30:52 PM] --- Finished project project-j successfully ---
+[2025/04/28 01:30:52 PM] === Processing Project: project-k ===
+[2025/04/28 01:30:52 PM] [project-k] Stopping stack...
+[2025/04/28 01:30:52 PM] Running command in test-env/compose/project-k: /usr/bin/docker compose down
+[2025/04/28 01:30:52 PM] Error stopping stack for project project-k: failed to run /usr/bin/docker compose down in test-env/compose/project-k: exit status 1
+Stderr: no configuration file provided: not found
+[2025/04/28 01:30:52 PM] [project-k] Skipping stack verification because stop command failed.
+[2025/04/28 01:30:52 PM] [project-k] Skipping volume parsing because previous steps failed.
+[2025/04/28 01:30:52 PM] [project-k] Skipping backup creation because previous steps failed.
+[2025/04/28 01:30:52 PM] [project-k] Restart requested.
+[2025/04/28 01:30:52 PM] [project-k] Skipping restart because previous steps failed.
+[2025/04/28 01:30:52 PM] --- Finished project project-k with ERRORS ---
+[2025/04/28 01:30:52 PM] =============================
+[2025/04/28 01:30:52 PM] Backup process finished. Successful: 8, Failed: 2
+[2025/04/28 01:30:52 PM] =============================
+[2025/04/28 01:30:52 PM] One or more projects failed to back up correctly. Check logs above.

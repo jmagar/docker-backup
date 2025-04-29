@@ -2,9 +2,10 @@ package discovery
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
+
+	"docker-backup-tool/internal/logutil"
 )
 
 // Project represents a discovered Docker Compose project.
@@ -31,7 +32,7 @@ func FindComposeProjects(composeDir string) ([]Project, error) {
 			if err != nil {
 				// Log this? Or let the main loop handle it?
 				// Let main loop log the error from FindFirstComposeFile if needed
-				log.Printf("Debug: Error finding compose file in %s: %v. Skipping directory.", projectPath, err)
+				logutil.Debug("Error finding compose file in %s: %v. Skipping directory.", projectPath, err)
 				continue
 			}
 			if composeFile != "" {
@@ -47,7 +48,7 @@ func FindComposeProjects(composeDir string) ([]Project, error) {
 	if len(projects) == 0 {
 		// Return an empty slice, not an error, if the directory is just empty
 		// Main loop handles the "no projects found" message.
-		log.Printf("Debug: No projects with compose files found directly in %s", composeDir)
+		logutil.Debug("No projects with compose files found directly in %s", composeDir)
 	}
 
 	return projects, nil
@@ -72,5 +73,5 @@ func FindFirstComposeFile(dirPath string) (string, error) {
 	// No compose file found - this is not necessarily an error for FindComposeProjects,
 	// but the caller (main loop) should know.
 	// log.Printf("Debug: No compose file found in %s", dirPath) // Reduce noise, main logs this
-	return "", nil // Return empty string, not an error, if not found
+	return "", nil // Return empty string, no error, if not found
 }
