@@ -1,0 +1,76 @@
+{
+  "Climb": "g0B4",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Project Setup & Configuration Loading",
+      "details": "Create initial Go project structure (`cmd/backup-tool`, `internal/config`, etc.). Init `go.mod`. Add dependencies (`yaml`, `viper`). Implement config struct and loading logic (flags > env > file) using Viper. Create `config.example.yaml`.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Implement Project & Compose File Discovery",
+      "details": "Create functions to scan the configured `compose-dir` for subdirectories and find the first `*.y*ml` file within each. Integrate into a basic loop in `main.go` that logs findings."
+    },
+    {
+      "status": "complete",
+      "description": "Implement Docker Command Execution Wrappers",
+      "details": "In `internal/docker`, create functions using `os/exec` to run `down`, `ps -q`, `pull`, `up -d`. Functions should find `docker compose` vs `docker-compose` and return errors.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Implement YAML Parsing for Appdata Volumes",
+      "details": "In `internal/backup`, create a function using `gopkg.in/yaml.v3` to parse a compose file and return a slice of unique, existing host volume paths matching the `appdata-dir` prefix. Handle parsing errors."
+    },
+    {
+      "status": "complete",
+      "description": "Implement Exclude Pattern Matching Utility",
+      "details": "Create a utility function (e.g., in `internal/backup` or `internal/util`) that takes a file path and exclude patterns (globs) and returns true if the path matches any pattern, using `filepath.Match`."
+    },
+    {
+      "status": "complete",
+      "description": "Implement Core Backup Creation (Zip, No Excludes Yet)",
+      "details": "In `internal/backup`, create `CreateBackup` function. It should handle temp directory creation/cleanup (`os.MkdirTemp`, `defer os.RemoveAll`). Copy compose dir contents and specified appdata paths to temp structure (`temp/compose/`, `temp/appdata/`). Create the final zip archive using `archive/zip`. Handle file IO and zip errors.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Integrate Exclude Patterns into Backup Copying",
+      "details": "Modify the file copying logic within `CreateBackup` to use `filepath.WalkDir` and the exclude pattern matching utility to skip excluded files/directories during the copy to the temporary directory."
+    },
+    {
+      "status": "complete",
+      "description": "Integrate Main Backup Loop Logic",
+      "details": "In `main.go`, combine the discovery, Docker `down`/`ps -q` checks, YAML parsing, and `CreateBackup` calls within the project loop. Implement basic error handling (log and continue)."
+    },
+    {
+      "status": "complete",
+      "description": "Implement Restart & Pull Logic",
+      "details": "In the main loop, after a successful backup, check the `restart` config flag. If true, check the `pull` flag and call the Docker `pull` wrapper function, then call the Docker `up -d` wrapper function. Log results/errors.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Implement Rsync Transfer",
+      "details": "Create `internal/rsync` package with a function to execute the `rsync` command via `os/exec` using configured destination and options. In `main.go`, after successful zip creation, check `rsync.enable` config and call the rsync function if true. Log results/errors."
+    },
+    {
+      "status": "complete",
+      "description": "Implement Go Dependency Checks",
+      "details": "At the start of `main.go`, use `exec.LookPath` to check for the required `docker compose`/`docker-compose` command and for `rsync` (if `rsync.enable` is true). Exit gracefully if dependencies are missing."
+    },
+    {
+      "status": "complete",
+      "description": "Refine Logging",
+      "details": "Review all logging output (`log` package). Implement `--verbose` flag handling. Ensure messages are clear and informative, especially errors.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Final Polish, Build & README",
+      "details": "Add Go comments where needed. Format code (`go fmt`). Build the final binary (`go build`). Create a `README.md` explaining configuration (flags, env vars, config file) and usage. Ensure example config is accurate.",
+      "rest": true
+    }
+  ]
+} 

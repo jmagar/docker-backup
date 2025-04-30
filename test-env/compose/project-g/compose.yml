@@ -1,0 +1,14 @@
+# Test Case G: No Relevant Appdata Volume
+# Volumes point outside the target appdata dir
+version: "3.8"
+services:
+  service_g:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      - /tmp/project-g-data:/data # Outside test-env/appdata
+      # Or use a named volume
+      # - project-g-named-vol:/data-named 
+
+# volumes:
+#  project-g-named-vol: 

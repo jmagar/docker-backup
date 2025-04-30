@@ -1,0 +1,28 @@
+{
+  "Climb": "gH7A",
+  "moves": [
+    {
+      "status": "climbing",
+      "description": "Investigate and fix exclusion pattern matching",
+      "details": "Review internal/util/util.go (MatchesExclude) and internal/backup/backup.go (copy/zip functions) to understand why patterns like */cache/* might fail for nested appdata dirs (e.g., appdata/tautulli/cache). Modify logic if necessary to ensure correct matching.",
+      "rest": true
+    },
+    {
+      "status": "todo",
+      "description": "Implement Sudo/Root Check",
+      "details": "In cmd/backup-tool/main.go, after logger init, use os.Geteuid() to check if running as root. If not, log a WARN message recommending sudo for complete appdata backups.",
+      "rest": false
+    },
+    {
+      "status": "todo",
+      "description": "Update README.md",
+      "details": "Add a note about the non-root user warning to the README.",
+      "rest": true 
+    },
+    {
+      "status": "todo",
+      "description": "Build and test",
+      "details": "Rebuild the binary. Test exclusions with verbose logging. Test running without sudo to verify the warning."
+    }
+  ]
+} 

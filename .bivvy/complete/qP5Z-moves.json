@@ -1,0 +1,22 @@
+{
+  "Climb": "qP5Z",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Refactor Stack Verification (`cmd/backup-tool/main.go`)",
+      "details": "Ensure the actual `docker.PsQuiet` call and its associated error handling logic are *only* executed when `cfg.DryRun` is `false`. Keep the existing `else if cfg.DryRun` block that logs the simulation.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Refactor Rsync Execution (`cmd/backup-tool/main.go`)",
+      "details": "Ensure the `rsync.TransferBackup` call and its associated logging are executed *only* when `cfg.DryRun` is `false`. Verify the `else` block correctly logs the simulated transfer.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Build and test the dry run mode again",
+      "details": "Rebuild the binary and run with --dry-run on the test environment to confirm fixes."
+    }
+  ]
+} 

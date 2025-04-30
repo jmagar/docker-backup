@@ -1,0 +1,29 @@
+{
+  "Climb": "eX7A",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Read internal/backup/backup.go",
+      "details": "Focus on the CreateBackup function and any helper functions involved in walking directories (likely using filepath.WalkDir) and applying exclude patterns.",
+      "rest": false
+    },
+    {
+      "status": "climbing",
+      "description": "Identify and fix the exclude pattern logic",
+      "details": "Modify the directory walking/file copying logic to correctly check each path against *all* exclude patterns. Ensure that if a directory matches an exclude pattern, filepath.WalkDir is instructed to skip that directory using `filepath.SkipDir`.",
+      "rest": true
+    },
+    {
+      "status": "todo",
+      "description": "Rebuild the backup-tool binary",
+      "details": "Run 'go build -v ./cmd/backup-tool/...' in the project root.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Test the fix",
+      "details": "Ensure the configuration (via .env or config.yaml) includes `exclude: [\".git/**\", \"cache/**\"]`. Run './backup-tool'. Verify Project F completes successfully and inspect the logs/output zip if desired.",
+      "rest": true
+    }
+  ]
+} 

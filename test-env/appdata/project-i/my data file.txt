@@ -1,0 +1,7 @@
+This is part of Test Case I for testing backup functionality with special characters in paths and filenames.
+This is a test file with spaces in its name.
+This will verify that the backup tool can properly handle filenames with spaces.
+
+File created for testing purposes.
+
+File created on: $(date) 

@@ -1,0 +1,28 @@
+{
+  "Climb": "fK9B",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Ensure backup directory exists before zipping",
+      "details": "In internal/backup/backup.go -> CreateBackup, before calling zipDirectory, check if cfg.BackupDir exists. If not, use os.MkdirAll(cfg.BackupDir, 0755) to create it. Handle and log errors if directory creation fails.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Update README.md with permission guidance",
+      "details": "Add a note to README.md explaining potential 'permission denied' errors during appdata backup and recommending the use of 'sudo' if necessary.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Fix unused variable in internal/backup/backup.go",
+      "details": "Remove the unused 'composeCommand' global variable and its associated 'init()' function from internal/backup/backup.go to resolve the U1000 linter warning.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Build and test",
+      "details": "Rebuild the binary. Manually delete the backup directory (if it exists) and run a backup (without --dry-run) to ensure the directory is created and the backup succeeds (ignoring any unrelated permission errors)."
+    }
+  ]
+} 

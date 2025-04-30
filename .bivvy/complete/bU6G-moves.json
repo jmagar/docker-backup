@@ -1,0 +1,29 @@
+{
+  "Climb": "bU6G",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Read internal/config/config.go and cmd/backup-tool/main.go",
+      "details": "Understand how Viper is initialized, how the Config struct is defined, and how viper.Unmarshal() is used to load the config.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Identify and fix the Viper unmarshalling bug",
+      "details": "Correct the code in internal/config/config.go (or potentially main.go) to ensure all fields (especially `exclude`, `restart_after_backup`, `pull_before_restart`, `verbose`) are correctly populated from config.yaml. Check struct tags (`mapstructure:\",squash\"` or specific field tags) and Viper setup.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Rebuild the docker-backup binary",
+      "details": "Run 'go build' in the project root directory.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Test the fix by running the binary",
+      "details": "Run './docker-backup' with the existing config.yaml. Verify the 'Configuration loaded:' log message shows the correct values for all settings. Check logs for restart/pull messages on successful backups. Optionally, inspect a backup zip (like project-f's after fixing excludes) to confirm exclusions worked.",
+      "rest": true
+    }
+  ]
+} 

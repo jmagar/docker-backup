@@ -14,33 +14,12 @@ import (
 
 	// Import the util package
 
+	"docker-backup-tool/internal/config"
 	"docker-backup-tool/internal/logutil"
 	"docker-backup-tool/internal/util"
 
 	"gopkg.in/yaml.v3"
 )
-
-// --- Docker Compose Command Detection (copied from internal/docker) ---
-var composeCommand = []string{"docker", "compose"} // Default to v2
-
-func init() {
-	// Check if `docker compose` (v2) exists, if not, fallback to `docker-compose` (v1)
-	_, err := exec.LookPath("docker")
-	if err != nil {
-		return // Docker not found, main dependency check handles this
-	}
-	cmd := exec.Command("docker", "compose", "version")
-	if cmd.Run() != nil {
-		_, errV1 := exec.LookPath("docker-compose")
-		if errV1 == nil {
-			composeCommand = []string{"docker-compose"}
-			// Log only if verbose is enabled? Need config here, maybe log later.
-			// log.Println("Debug: Detected docker-compose (v1) for config parsing")
-		} // else: Neither v2 nor v1 seems functional, let execution fail
-	} // else: v2 works
-}
-
-// --- End Docker Compose Command Detection ---
 
 // Minimal structure to unmarshal docker-compose YAML for volume extraction
 // We only care about services and their volumes list.
@@ -176,8 +155,8 @@ func ParseVolumes(composeFilePath string, appdataDir string, dockerComposeCmd st
 // --- Backup Creation ---
 
 // CreateBackup orchestrates the creation of a backup zip file for a project.
-// It now accepts excludePatterns.
-func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []string, excludePatterns []string) (string, error) {
+// It now accepts the full config struct.
+func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []string, cfg config.Config) (string, error) {
 	// 1. Create Temporary Directory
 	// Use os.MkdirTemp in the *parent* of the backupDir or a system temp location?
 	// Using backupDir might pollute it if cleanup fails, using system temp is safer.
@@ -220,7 +199,7 @@ func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []str
 
 	// 3. Copy Compose Directory Contents (Respecting Excludes)
 	logutil.Info("Copying compose directory '%s'...", projectPath)
-	if err := copyDirectoryContents(projectPath, tempComposeTarget, excludePatterns); err != nil {
+	if err := copyDirectoryContents(projectPath, tempComposeTarget, cfg); err != nil {
 		return "", fmt.Errorf("failed to copy compose directory contents: %w", err)
 	}
 
@@ -231,7 +210,7 @@ func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []str
 			// Target path preserves the original name inside the temp appdata parent
 			targetPath := filepath.Join(tempAppdataParent, filepath.Base(srcPath))
 			logutil.Debug("Copying appdata path '%s' to '%s'", srcPath, targetPath)
-			if err := copyPath(srcPath, targetPath, excludePatterns); err != nil {
+			if err := copyPath(srcPath, targetPath, cfg); err != nil {
 				// Log error but potentially continue? Or fail backup?
 				// For now, let's fail the backup if any appdata copy fails.
 				return "", fmt.Errorf("failed to copy appdata path '%s': %w", srcPath, err)
@@ -241,10 +220,15 @@ func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []str
 
 	// 5. Create Zip Archive
 	backupFileName := fmt.Sprintf("%s_%s.zip", projectName, time.Now().Format("20060102"))
-	backupFilePath := filepath.Join(backupDir, backupFileName)
+	backupFilePath := filepath.Join(cfg.BackupDir, backupFileName)
+
+	// Ensure the target backup directory exists
+	if err := os.MkdirAll(cfg.BackupDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create backup directory '%s': %w", cfg.BackupDir, err)
+	}
 
 	logutil.Info("Creating zip archive: %s", backupFilePath)
-	if err := zipDirectory(tempBackupRoot, backupFilePath, excludePatterns); err != nil {
+	if err := zipDirectory(tempBackupRoot, backupFilePath, cfg); err != nil {
 		return "", fmt.Errorf("failed to create zip archive: %w", err)
 	}
 
@@ -256,7 +240,7 @@ func CreateBackup(projectName, projectPath, backupDir string, appdataPaths []str
 
 // copyPath copies a file or directory recursively, respecting exclude patterns.
 // It acts as a dispatcher based on whether the source is a file or directory.
-func copyPath(src, dst string, excludePatterns []string) error {
+func copyPath(src, dst string, cfg config.Config) error {
 	info, err := os.Stat(src)
 	if err != nil {
 		return err
@@ -268,7 +252,7 @@ func copyPath(src, dst string, excludePatterns []string) error {
 	// Let's assume patterns are relative to the *copy source root* for now.
 	// The walk function handles relative paths internally.
 	if info.IsDir() {
-		return copyDirectoryContents(src, dst, excludePatterns)
+		return copyDirectoryContents(src, dst, cfg)
 	}
 	// For single files, the exclude check needs to happen here if needed,
 	// but copyDirectoryContents handles the walk.
@@ -276,7 +260,7 @@ func copyPath(src, dst string, excludePatterns []string) error {
 }
 
 // copyDirectoryContents copies the contents of srcDir to dstDir recursively, respecting excludes.
-func copyDirectoryContents(srcDir, dstDir string, excludePatterns []string) error {
+func copyDirectoryContents(srcDir, dstDir string, cfg config.Config) error {
 	return filepath.WalkDir(srcDir, func(path string, d fs.DirEntry, err error) error {
 		// Basic error handling first
 		if err != nil {
@@ -297,12 +281,15 @@ func copyDirectoryContents(srcDir, dstDir string, excludePatterns []string) erro
 		}
 
 		// Check exclusion
-		excluded, patternErr := util.MatchesExclude(relPath, excludePatterns)
+		excluded, patternErr := util.MatchesExclude(relPath, cfg.Exclude)
 		if patternErr != nil {
 			return fmt.Errorf("exclude pattern error: %w", patternErr)
 		}
 		if excluded {
-			logutil.Info("Excluding: %s (matches pattern)", relPath)
+			// Only log if verbose is enabled
+			if cfg.Verbose {
+				logutil.Debug("Excluding (copy): %s (matches pattern)", relPath)
+			}
 			if d.IsDir() {
 				return filepath.SkipDir // Skip the entire directory
 			}
@@ -371,7 +358,7 @@ func copyFile(src, dst string) error {
 
 // zipDirectory creates a zip archive of the source directory's contents.
 // Needs to respect exclude patterns too!
-func zipDirectory(sourceDir, targetZipFile string, excludePatterns []string) error {
+func zipDirectory(sourceDir, targetZipFile string, cfg config.Config) error {
 	zipFile, err := os.Create(targetZipFile)
 	if err != nil {
 		return fmt.Errorf("failed to create zip file '%s': %w", targetZipFile, err)
@@ -401,11 +388,15 @@ func zipDirectory(sourceDir, targetZipFile string, excludePatterns []string) err
 		}
 
 		// Check Excludes for Zipping
-		excluded, patternErr := util.MatchesExclude(relPath, excludePatterns)
+		excluded, patternErr := util.MatchesExclude(relPath, cfg.Exclude)
 		if patternErr != nil {
 			return fmt.Errorf("exclude pattern error during zip: %w", patternErr)
 		}
 		if excluded {
+			// Only log if verbose is enabled
+			if cfg.Verbose {
+				logutil.Debug("Excluding (zip): %s (matches pattern)", relPath)
+			}
 			if d.IsDir() {
 				return filepath.SkipDir // Skip excluded directories
 			}
@@ -435,6 +426,9 @@ func zipDirectory(sourceDir, targetZipFile string, excludePatterns []string) err
 		}
 
 		if !d.IsDir() {
+			if cfg.Verbose {
+				logutil.Debug("Adding to zip: %s", relPath)
+			}
 			file, err := os.Open(path)
 			if err != nil {
 				return err

@@ -1,0 +1,58 @@
+{
+  "Climb": "t5E1",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Setup Base Dirs and Case A (Basic)",
+      "details": "Create `test-env/compose/project-a`, `test-env/appdata/project-a`. Create `test-env/compose/project-a/compose.yml`, `.env`, `test-env/appdata/project-a/data.txt`. Run `docker compose up -d` in the project dir.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case B (Multi-service/Multi-appdata)",
+      "details": "Create `test-env/compose/project-b`, `test-env/appdata/project-b-svc1`, `test-env/appdata/project-b-svc2`. Create `test-env/compose/project-b/docker-compose.yaml`, `.env`, `test-env/appdata/project-b-svc1/svc1.dat`, `test-env/appdata/project-b-svc2/svc2.dat`. Run `docker compose up -d`."
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case C (Custom Compose Name)",
+      "details": "Create `test-env/compose/project-c`, `test-env/appdata/project-c`. Create `test-env/compose/project-c/custom-name.yml`, `.env`, `test-env/appdata/project-c/c-data.txt`. Run `docker compose -f custom-name.yml up -d`."
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case D (No Compose File) and Case E (Appdata Variations)",
+      "details": "Create empty dir `test-env/compose/project-d`. Create `test-env/compose/project-e`, `test-env/appdata/project-e`. Create `test-env/compose/project-e/compose.yaml`, `.env`, `test-env/appdata/project-e/real_data.txt`. Run `docker compose up -d` for project-e. Ensure `/tmp/project-e-outside` and `test-env/appdata/project-e-nonexistent` are handled correctly by the compose file definition and don't necessarily need creation here.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case F (Excludes)",
+      "details": "Create `test-env/compose/project-f`, `test-env/appdata/project-f`. Create `test-env/compose/project-f/compose.yml`, `.env`, `test-env/compose/project-f/.git/config`, `test-env/compose/project-f/main.py`, `test-env/appdata/project-f/cache/temp.dat`, `test-env/appdata/project-f/important.dat`, `test-env/appdata/project-f/service.log`. Run `docker compose up -d`."
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case G (No Relevant Appdata Volume)",
+      "details": "Create `test-env/compose/project-g`. Create `test-env/compose/project-g/compose.yml` and `.env`. The compose file should define volumes outside `test-env/appdata` or named volumes. Run `docker compose up -d`."
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case H (Symlinks)",
+      "details": "Create `test-env/compose/project-h`, `test-env/appdata/project-h`. Create `test-env/compose/project-h/compose.yml`, `.env`, `test-env/appdata/project-h/real_file.txt`. Create a symlink `test-env/appdata/project-h/link_file.txt` pointing to `real_file.txt`. Run `docker compose up -d`.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case I (Special Characters)",
+      "details": "Create `test-env/compose/project-i`, `test-env/appdata/project-i`. Create `test-env/compose/project-i/compose.yml`, `.env`, `test-env/appdata/project-i/'my data file.txt'`, `test-env/appdata/project-i/'special(dir)'/info.txt`. Run `docker compose up -d`."
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case J (Empty Appdata Directory)",
+      "details": "Create `test-env/compose/project-j`, `test-env/appdata/project-j`. Create `test-env/compose/project-j/compose.yml`, `.env`. Ensure `test-env/appdata/project-j` exists but is empty. Run `docker compose up -d`."
+    },
+    {
+      "status": "complete",
+      "description": "Setup Case K (Invalid YAML)",
+      "details": "Create `test-env/compose/project-k`. Create `test-env/compose/project-k/broken.yaml` with invalid YAML content."
+    }
+  ] 
+} 

@@ -21,7 +21,8 @@ func MatchesExclude(path string, patterns []string) (bool, error) {
 		// Specific handling for dir/** patterns to match the directory itself
 		if strings.HasSuffix(pattern, "/**") {
 			dirPattern := strings.TrimSuffix(pattern, "/**")
-			if normalizedPath == dirPattern {
+			// Match if the path IS the directory OR if the path STARTS WITH the directory followed by a slash
+			if normalizedPath == dirPattern || strings.HasPrefix(normalizedPath, dirPattern+"/") {
 				return true, nil
 			}
 			// Fall through for standard match below
@@ -45,6 +46,19 @@ func MatchesExclude(path string, patterns []string) (bool, error) {
 		if matched {
 			return true, nil
 		}
+
+		// --- Added Check: Explicitly check for directory name within path for wildcard patterns ---
+		// This helps catch cases like `*/cache/*` matching `appdata/service/cache/file`
+		if strings.Contains(pattern, "/*/") {
+			parts := strings.Split(pattern, "/*/")
+			if len(parts) == 2 && parts[0] == "*" && parts[1] == "*" {
+				dirToMatch := strings.TrimSuffix(strings.TrimPrefix(pattern, "*/"), "/*")
+				if strings.Contains(normalizedPath, "/"+dirToMatch+"/") {
+					return true, nil
+				}
+			}
+		}
+		// --- End Added Check ---
 	}
 
 	return false, nil

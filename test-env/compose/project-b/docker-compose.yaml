@@ -1,0 +1,16 @@
+# Test Case B: Multi-service with multiple distinct appdata volumes
+version: "3.8"
+services:
+  service_b1:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      # Corrected absolute path:
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc1:/data1
+
+  service_b2:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      # Corrected absolute path:
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-b-svc2:/data2 

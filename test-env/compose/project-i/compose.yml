@@ -1,0 +1,8 @@
+# Test Case I: Special Characters in appdata path/filename
+version: "3.8"
+services:
+  service_i:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-i:/data 

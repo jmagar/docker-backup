@@ -1,0 +1,13 @@
+# Test Case A: Basic single service with single appdata volume
+version: "3.8"
+services:
+  service_a:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      # Corrected absolute path:
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a:/data
+      # Using absolute path based on expected structure relative to workspace root
+      #- /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-a:/data
+      # Ideally, use the variable expansion, assuming APPDATA_DIR is set correctly when backup runs
+      # - ${APPDATA_DIR}/project-a:/data 

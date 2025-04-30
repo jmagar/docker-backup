@@ -1,0 +1,41 @@
+{
+  "Climb": "aP9C",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Review internal/backup/backup.go",
+      "details": "Carefully examine `ParseVolumes`, `CreateBackup`, `copyPath`, `copyDirectoryContents`, and `zipDirectory`. Pay close attention to how `appdataPaths` are generated, passed, and used in the copy and zip phases.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Add Debug Logging",
+      "details": "Insert log statements to track: 1) The list of `appdataPaths` identified by `ParseVolumes`. 2) The source and destination paths used in the appdata copy loop within `CreateBackup`. 3) The relative paths being added to the zip archive within `zipDirectory`.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Rebuild and Run Test",
+      "details": "Rebuild `./backup-tool`. Run it against the test environment. Focus on the logs for a project expected to have appdata (e.g., Project F).",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Analyze Logs and Identify Bug",
+      "details": "Examine the debug logs. Determine if `appdataPaths` are being identified correctly, if they are being copied to the correct temporary location (`temp/appdata/...`), and if they are being processed by `zipDirectory`.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Implement Fix",
+      "details": "Correct the logic identified in the previous step. This might involve fixing path manipulation, ensuring the copy target is correct, or adjusting the zip process.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Rebuild and Final Test",
+      "details": "Rebuild `./backup-tool`. Run it again. Verify Project F (and others) now produce zip files containing the correct `appdata/...` contents.",
+      "rest": true
+    }
+  ]
+} 

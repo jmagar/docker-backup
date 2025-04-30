@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  service_j:
+    image: alpine:latest
+    container_name: ${CONTAINER_NAME:-project-j-service}
+    command: tail -f /dev/null # Keep container running
+    volumes:
+      - ${VOLUME_SOURCE:-../../appdata/project-j}:${VOLUME_DEST:-/data}
+
+networks:
+  default:
+    name: ${PROJECT_NAME:-project-j}_default 

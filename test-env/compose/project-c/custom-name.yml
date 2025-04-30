@@ -1,0 +1,8 @@
+# Test Case C: Custom Compose Name
+version: "3.8"
+services:
+  service_c:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-c:/data 

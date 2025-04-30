@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	// Use the actual module path defined in go.mod
 	"docker-backup-tool/internal/config"
@@ -83,6 +84,11 @@ func main() {
 	logutil.Info("Using Appdata Dir: %s", cfg.AppdataDir)
 	logutil.Info("Using Backup Dir : %s", cfg.BackupDir)
 
+	// --- Dry Run Check ---
+	if cfg.DryRun {
+		logutil.Warn("--- DRY RUN MODE ENABLED --- Actions will be logged but not executed.")
+	}
+
 	// --- Discover Projects ---
 	logutil.Info("Starting project discovery...")
 
@@ -108,29 +114,47 @@ func main() {
 		logutil.Info("=== Processing Project: %s ===", projectName)
 
 		// 1. Stop Stack
-		logutil.Info("[%s] Stopping stack...", projectName)
-		if err := docker.Down(project.Path, dockerComposeCmd); err != nil {
-			logutil.Error("Error stopping stack for project %s: %v", projectName, err)
-			projectFailed = true
-			// Don't continue yet, still try to backup compose files etc.
+		if cfg.DryRun {
+			logutil.Info("[DRY RUN] Would stop stack for project %s (path: %s)", projectName, project.Path)
+		} else {
+			logutil.Info("[%s] Stopping stack...", projectName)
+			if err := docker.Down(project.Path, dockerComposeCmd); err != nil {
+				logutil.Error("Error stopping stack for project %s: %v", projectName, err)
+				projectFailed = true
+				// Don't continue yet, still try to backup compose files etc.
+			}
 		}
 
 		// 2. Verify Stack Down
 		if !projectFailed { // Only check if stop didn't already report an error
-			logutil.Info("[%s] Verifying stack is down...", projectName)
-			running, err := docker.PsQuiet(project.Path, dockerComposeCmd)
-			if err != nil {
-				logutil.Error("ERROR: Failed to check stack status for %s: %v. Skipping backup steps.", projectName, err)
-				projectFailed = true
-			} else if running {
-				logutil.Error("ERROR: Stack for %s is still running after 'down' command. Skipping backup steps.", projectName)
-				projectFailed = true
-			} else {
-				logutil.Info("Stack verified down for %s.", projectName)
+			if !cfg.DryRun {
+				// --- Execute real verification only if not in dry run ---
+				logutil.Info("[%s] Verifying stack is down...", projectName)
+				running, err := docker.PsQuiet(project.Path, dockerComposeCmd)
+				if err != nil {
+					logutil.Error("ERROR: Failed to check stack status for %s: %v. Skipping backup steps.", projectName, err)
+					projectFailed = true
+				} else if running {
+					logutil.Error("ERROR: Stack for %s is still running after 'down' command. Skipping backup steps.", projectName)
+					projectFailed = true
+				} else {
+					logutil.Info("Stack verified down for %s.", projectName)
+				}
 			}
 		} else {
 			logutil.Warn("[%s] Skipping stack verification because stop command failed.", projectName)
 		}
+
+		// Dry run simulation/override for verification step
+		if cfg.DryRun {
+			if projectFailed { // If the simulated stop failed (though currently it doesn't)
+				logutil.Info("[DRY RUN] Skipping stack verification simulation as stop was skipped/failed.")
+			} else {
+				logutil.Info("[DRY RUN] Would verify stack is down for %s.", projectName)
+				// Assume stack is down for dry run to proceed to backup simulation
+				projectFailed = false // Reset potential failure from simulated stop
+			}
+		} // else: Real verification logic handled above within the !cfg.DryRun block
 
 		// 3. Parse Volumes
 		var appdataPaths []string
@@ -156,14 +180,27 @@ func main() {
 
 		// 4. Create Backup
 		var backupFile string
-		if !projectFailed { // Only create if stack is confirmed down
-			logutil.Info("[%s] Creating backup...", projectName)
-			backupFile, err = backup.CreateBackup(projectName, project.Path, cfg.BackupDir, appdataPaths, cfg.Exclude)
-			if err != nil {
-				logutil.Error("ERROR: Failed to create backup for %s: %v.", projectName, err)
-				projectFailed = true
+		if !projectFailed { // Only create if stack is confirmed down or dry run
+			if cfg.DryRun {
+				logutil.Info("[DRY RUN] Would create backup for %s.", projectName)
+				logutil.Info("[DRY RUN]   Compose Path: %s", project.Path)
+				logutil.Info("[DRY RUN]   Appdata Paths (%d):", len(appdataPaths))
+				for _, p := range appdataPaths {
+					logutil.Info("[DRY RUN]     - %s", p)
+				}
+				logutil.Info("[DRY RUN]   Exclusions Applied: %d patterns", len(cfg.Exclude))
+				// Simulate a successful backup file path for potential rsync dry run
+				backupFile = filepath.Join(cfg.BackupDir, projectName+"_DRYRUN.zip")
 			} else {
-				logutil.Success("Successfully created backup: %s", backupFile) // Use Success
+				logutil.Info("[%s] Creating backup...", projectName)
+				// Pass the full cfg object
+				backupFile, err = backup.CreateBackup(projectName, project.Path, cfg.BackupDir, appdataPaths, cfg)
+				if err != nil {
+					logutil.Error("ERROR: Failed to create backup for %s: %v.", projectName, err)
+					projectFailed = true
+				} else {
+					logutil.Success("Successfully created backup: %s", backupFile) // Use Success
+				}
 			}
 		} else {
 			logutil.Warn("[%s] Skipping backup creation because previous steps failed.", projectName)
@@ -178,12 +215,18 @@ func main() {
 			} else if cfg.Rsync.Destination == "" {
 				logutil.Warn("[%s] Skipping rsync because rsync.destination is not set.", projectName)
 			} else {
-				logutil.Info("[%s] Rsync enabled. Transferring %s to %s...", projectName, backupFile, cfg.Rsync.Destination)
-				if err := rsync.TransferBackup(cfg, backupFile); err != nil {
-					logutil.Error("ERROR: Rsync transfer failed for %s: %v", projectName, err)
-					projectFailed = true // Mark project as failed if rsync fails
+				if cfg.DryRun {
+					logutil.Info("[DRY RUN] Would transfer %s to %s using rsync.", backupFile, cfg.Rsync.Destination)
+					// Simulate success for dry run by not setting projectFailed=true
 				} else {
-					logutil.Success("[%s] Rsync transfer successful.", projectName)
+					// --- Execute real rsync only if not in dry run ---
+					logutil.Info("[%s] Rsync enabled. Transferring %s to %s...", projectName, backupFile, cfg.Rsync.Destination)
+					if err := rsync.TransferBackup(cfg, backupFile); err != nil {
+						logutil.Error("ERROR: Rsync transfer failed for %s: %v", projectName, err)
+						projectFailed = true // Mark project as failed if rsync fails
+					} else {
+						logutil.Success("[%s] Rsync transfer successful.", projectName)
+					}
 				}
 			}
 		}
@@ -194,22 +237,30 @@ func main() {
 			if projectFailed {
 				logutil.Warn("[%s] Skipping restart because previous steps failed.", projectName)
 			} else {
-				// Restart logic
-				if cfg.PullBeforeRestart {
-					logutil.Info("[%s] Pulling latest images...", projectName)
-					if err := docker.Pull(project.Path, dockerComposeCmd); err != nil {
-						logutil.Error("ERROR: Failed to pull images for %s: %v", projectName, err)
-						// Continue to attempt restart even if pull fails
-					} else {
-						logutil.Info("[%s] Image pull successful.", projectName)
+				if cfg.DryRun {
+					if cfg.PullBeforeRestart {
+						logutil.Info("[DRY RUN] Would pull latest images for %s.", projectName)
 					}
-				}
-				logutil.Info("[%s] Starting stack...", projectName)
-				if err := docker.UpDetached(project.Path, dockerComposeCmd); err != nil {
-					logutil.Error("ERROR: Failed to start stack %s after backup: %v", projectName, err)
-					projectFailed = true // Mark project as failed if restart fails
+					logutil.Info("[DRY RUN] Would start stack %s.", projectName)
+					// Assume success for dry run
 				} else {
-					logutil.Success("[%s] Stack started successfully.", projectName)
+					// Restart logic
+					if cfg.PullBeforeRestart {
+						logutil.Info("[%s] Pulling latest images...", projectName)
+						if err := docker.Pull(project.Path, dockerComposeCmd); err != nil {
+							logutil.Error("ERROR: Failed to pull images for %s: %v", projectName, err)
+							// Continue to attempt restart even if pull fails
+						} else {
+							logutil.Info("[%s] Image pull successful.", projectName)
+						}
+					}
+					logutil.Info("[%s] Starting stack...", projectName)
+					if err := docker.UpDetached(project.Path, dockerComposeCmd); err != nil {
+						logutil.Error("ERROR: Failed to start stack %s after backup: %v", projectName, err)
+						projectFailed = true // Mark project as failed if restart fails
+					} else {
+						logutil.Success("[%s] Stack started successfully.", projectName)
+					}
 				}
 			}
 		} // End RestartAfterBackup

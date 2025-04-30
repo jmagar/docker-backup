@@ -1,0 +1,29 @@
+{
+  "Climb": "hY1D",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Re-examine internal/backup/backup.go (copyDirectoryContents)",
+      "details": "Focus on the WalkDir callback. Specifically, review how `relPath` is used with `util.MatchesExclude` and how `filepath.SkipDir` is returned. Verify the logic for handling `os.Stat` errors in relation to excluded directories.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Refine Exclude Logic",
+      "details": "Adjust the WalkDir callback logic to ensure `filepath.SkipDir` is returned *reliably* for directories matching exclude patterns, potentially simplifying the conditional checks and error handling for excluded paths.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Rebuild and Test",
+      "details": "Rebuild `./backup-tool`. Ensure `exclude: [\".git/**\", \"cache/**\", \"**/*.log\"]` is configured. Run the tool and verify Project F completes successfully.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Verify Backup Contents",
+      "details": "Unzip the Project F backup file (`test-env/backups/project-f_*.zip`) and confirm that `.git`, `appdata/project-f/cache`, and `appdata/project-f/service.log` are NOT present.",
+      "rest": true
+    }
+  ]
+} 

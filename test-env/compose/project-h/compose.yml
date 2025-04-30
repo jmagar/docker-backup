@@ -1,0 +1,8 @@
+# Test Case H: Symbolic Link Handling
+version: "3.8"
+services:
+  service_h:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-h:/data 

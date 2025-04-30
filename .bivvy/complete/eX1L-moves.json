@@ -1,0 +1,28 @@
+{
+  "Climb": "eX1L",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Update CreateBackup signature",
+      "details": "Modify CreateBackup in internal/backup/backup.go and its call in cmd/backup-tool/main.go to accept the full config.Config struct instead of just excludePatterns []string.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Log excluded items during copy phase",
+      "details": "In internal/backup/backup.go -> copyDirectoryContents, add logutil.Debug call if cfg.Verbose is true when item is excluded.",
+      "rest": false
+    },
+    {
+      "status": "complete",
+      "description": "Log excluded and included items during zip phase",
+      "details": "In internal/backup/backup.go -> zipDirectory, add logutil.Debug calls if cfg.Verbose is true when items are excluded or included.",
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Build and test",
+      "details": "Rebuild the binary and run with `--verbose --dry-run` to verify new debug logs appear correctly."
+    }
+  ]
+} 

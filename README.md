@@ -130,4 +130,11 @@ Run the compiled binary. Configure using flags, environment variables, or a conf
 
 # Redirecting output (colors will be disabled in the file)
 ./backup-tool > output.txt
-``` 
+```
+
+### Troubleshooting
+
+*   **Permission Denied Errors:** When copying application data (`appdata`), you might encounter `permission denied` errors. This usually happens because the user running `backup-tool` does not have read access to files/directories created by containers (which often run as different users). The recommended solution is to run the tool with elevated privileges using `sudo ./backup-tool ...`.
+*   **Log Files:** Check the configured log file (default `backup-tool.log`) for detailed error messages, especially if verbose mode is not enabled.
+*   **Rsync Errors:** Ensure the `rsync` command is installed, the destination path is correct, and necessary SSH keys/credentials are set up for the remote host.
+*   **Docker Compose Errors:** Verify that the correct Docker Compose command (`docker compose` or `docker-compose`) is detected and functional. 

@@ -1,0 +1,10 @@
+# Test Case E: Appdata variations (outside scope, non-existent, valid)
+version: "3.8"
+services:
+  service_e:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+    volumes:
+      - /tmp/project-e-outside:/data_outside # Should be ignored by backup tool
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e-nonexistent:/data_nonexistent # Should be warned/skipped by backup tool
+      - /home/jmagar/code/scripts/docker-backup/test-env/appdata/project-e:/data_valid # Should be included 

@@ -1,0 +1,8 @@
+This file is inside a directory with parentheses in the name: special(dir)
+
+This is part of Test Case I for testing backup functionality with special characters in paths and filenames.
+
+This is a test file inside a directory with special characters in its name.
+This will verify that the backup tool can properly handle directories containing parentheses and other special characters.
+
+File created on: $(date) 

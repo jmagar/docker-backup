@@ -1,6 +1,2 @@
-test-env/
-.bivvy/
-.cursor/
-cline_docs/
 config.yaml
 .env

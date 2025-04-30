@@ -1,132 +1,299 @@
 package config
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"strings"
+	"os"
+	"strconv"
 
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
+	"gopkg.in/yaml.v3"
 )
 
 // Config stores all configuration for the application.
 // The values are read by viper from a config file, environment variables, or flags.
 type Config struct {
-	ComposeDir         string   `mapstructure:"compose_dir"`
-	AppdataDir         string   `mapstructure:"appdata_dir"`
-	BackupDir          string   `mapstructure:"backup_dir"`
-	RestartAfterBackup bool     `mapstructure:"restart_after_backup"`
-	PullBeforeRestart  bool     `mapstructure:"pull_before_restart"`
-	Exclude            []string `mapstructure:"exclude"`
-	Verbose            bool     `mapstructure:"verbose"`
+	ComposeDir         string
+	AppdataDir         string
+	BackupDir          string
+	RestartAfterBackup bool
+	PullBeforeRestart  bool
+	Exclude            []string
+	Verbose            bool
+	DryRun             bool
 
 	// --- Logging Configuration ---
-	LogFile               string `mapstructure:"log_file"`
-	LogRotationMaxSizeMB  int    `mapstructure:"log_rotation_max_size_mb"`
-	LogRotationMaxBackups int    `mapstructure:"log_rotation_max_backups"`
-	LogRotationMaxAgeDays int    `mapstructure:"log_rotation_max_age_days"`
-	LogRotationCompress   bool   `mapstructure:"log_rotation_compress"`
+	LogFile               string
+	LogRotationMaxSizeMB  int
+	LogRotationMaxBackups int
+	LogRotationMaxAgeDays int
+	LogRotationCompress   bool
 
 	Rsync struct {
-		Enabled     bool   `mapstructure:"enabled"`
-		Destination string `mapstructure:"destination"`
-		Options     string `mapstructure:"options"`
-		Command     string `mapstructure:"command"`
-	} `mapstructure:"rsync"`
+		Enabled     bool
+		Destination string
+		Options     string
+		Command     string
+	}
 }
 
-// LoadConfig reads configuration from file, env vars, and flags using Viper
-func LoadConfig() (cfg Config, err error) {
-	// --- Defaults ---
-	vp := viper.New()
-	vp.SetDefault("compose_dir", "/home/server/compose")
-	vp.SetDefault("appdata_dir", "/home/server/appdata")
-	vp.SetDefault("backup_dir", "./docker_backups")
-	vp.SetDefault("restart_after_backup", false)
-	vp.SetDefault("pull_before_restart", false)
-	vp.SetDefault("exclude", []string{})
-	vp.SetDefault("verbose", false)
-	vp.SetDefault("rsync.enabled", false)
-	vp.SetDefault("rsync.destination", "")
-	vp.SetDefault("rsync.options", "--archive --partial --compress --delete")
-	vp.SetDefault("rsync.command", "rsync")
+// Intermediate structure for unmarshalling YAML, matching YAML keys
+type yamlConfig struct {
+	ComposeDir            string   `yaml:"compose_dir"`
+	AppdataDir            string   `yaml:"appdata_dir"`
+	BackupDir             string   `yaml:"backup_dir"`
+	RestartAfterBackup    bool     `yaml:"restart_after_backup"`
+	PullBeforeRestart     bool     `yaml:"pull_before_restart"`
+	Exclude               []string `yaml:"exclude_patterns"` // Match YAML key
+	Verbose               bool     `yaml:"verbose"`
+	DryRun                bool     `yaml:"dry_run"`
+	LogFile               string   `yaml:"log_file"`
+	LogRotationMaxSizeMB  int      `yaml:"log_rotation_max_size_mb"`
+	LogRotationMaxBackups int      `yaml:"log_rotation_max_backups"`
+	LogRotationMaxAgeDays int      `yaml:"log_rotation_max_age_days"`
+	LogRotationCompress   bool     `yaml:"log_rotation_compress"`
+	Rsync                 struct {
+		Enabled     bool   `yaml:"enabled"`
+		Destination string `yaml:"destination"`
+		Options     string `yaml:"options"`
+		Command     string `yaml:"command"`
+	} `yaml:"rsync"`
+}
 
-	// --- Logging Defaults
-	vp.SetDefault("log_file", "backup-tool.log") // Default log file in CWD
-	vp.SetDefault("log_rotation_max_size_mb", 100)
-	vp.SetDefault("log_rotation_max_backups", 3)
-	vp.SetDefault("log_rotation_max_age_days", 28)
-	vp.SetDefault("log_rotation_compress", false)
+// LoadConfig reads configuration using standard libraries and godotenv.
+// Precedence: Flags > Environment Variables > Config File > Defaults
+func LoadConfig() (Config, error) {
+	var cfg Config
 
-	// --- Flags ---
-	pflag.String("compose-dir", vp.GetString("compose_dir"), "Directory containing docker compose project subfolders")
-	pflag.String("appdata-dir", vp.GetString("appdata_dir"), "Base directory containing application data volumes")
-	pflag.String("backup-dir", vp.GetString("backup_dir"), "Directory to store backup zip files")
-	pflag.Bool("restart", vp.GetBool("restart_after_backup"), "Restart stacks after successful backup")
-	pflag.Bool("pull", vp.GetBool("pull_before_restart"), "Pull latest images before restarting stacks (only if --restart is true)")
-	pflag.StringSlice("exclude", vp.GetStringSlice("exclude"), "Glob patterns to exclude from backup (can be specified multiple times)")
-	pflag.BoolP("verbose", "v", vp.GetBool("verbose"), "Enable verbose logging")
-	pflag.Bool("rsync-enabled", vp.GetBool("rsync.enabled"), "Enable rsync transfer of backup files")
-	pflag.String("rsync-dest", vp.GetString("rsync.destination"), "Rsync destination (e.g., user@host:/path/)")
-	pflag.String("rsync-opts", vp.GetString("rsync.options"), "Additional options for the rsync command")
-	pflag.String("rsync-cmd", vp.GetString("rsync.command"), "Path to the rsync command executable")
-	pflag.String("log-file", vp.GetString("log_file"), "Path to log file (defaults to backup-tool.log in current dir)")
-	configFile := pflag.String("config", "", "Path to configuration file (optional)")
-	pflag.Parse()
-	// Bind flags to viper
-	err = vp.BindPFlags(pflag.CommandLine)
+	// --- 1. Defaults ---
+	defaults := Config{
+		ComposeDir:            "/home/server/compose",
+		AppdataDir:            "/home/server/appdata",
+		BackupDir:             "./docker_backups",
+		RestartAfterBackup:    false,
+		PullBeforeRestart:     false,
+		Exclude:               []string{}, // Corrected YAML key is exclude_patterns
+		Verbose:               false,
+		DryRun:                false,
+		LogFile:               "backup-tool.log",
+		LogRotationMaxSizeMB:  100,
+		LogRotationMaxBackups: 3,
+		LogRotationMaxAgeDays: 28,
+		LogRotationCompress:   false,
+		Rsync: struct {
+			Enabled     bool
+			Destination string
+			Options     string
+			Command     string
+		}{
+			Enabled:     false,
+			Destination: "",
+			Options:     "--archive --partial --compress --delete",
+			Command:     "rsync",
+		},
+	}
+	cfg = defaults // Start with defaults
+
+	// --- 2. Config File --- (Requires flag parsing first to find potential custom path)
+	// Define flags here but parse later
+	configFilePath := flag.String("config", "", "Path to configuration file (e.g., config.yaml)")
+
+	// Define other flags, using default values from the 'defaults' struct
+	composeDirFlag := flag.String("compose-dir", defaults.ComposeDir, "Directory containing docker compose project subfolders")
+	appdataDirFlag := flag.String("appdata-dir", defaults.AppdataDir, "Base directory containing application data volumes")
+	backupDirFlag := flag.String("backup-dir", defaults.BackupDir, "Directory to store backup zip files")
+	restartFlag := flag.Bool("restart", defaults.RestartAfterBackup, "Restart stacks after successful backup")
+	pullFlag := flag.Bool("pull", defaults.PullBeforeRestart, "Pull latest images before restarting stacks (only if --restart is true)")
+	// Note: StringSlice isn't standard; handle exclude flag manually if needed, or rely on env/config file.
+	verboseFlag := flag.Bool("verbose", defaults.Verbose, "Enable verbose logging (shorthand -v)")
+	flag.BoolVar(verboseFlag, "v", defaults.Verbose, "Enable verbose logging (shorthand for --verbose)") // Shorthand
+	dryRunFlag := flag.Bool("dry-run", defaults.DryRun, "Perform a dry run, showing actions without executing them")
+	logFileFlag := flag.String("log-file", defaults.LogFile, "Path to log file")
+	rsyncEnabledFlag := flag.Bool("rsync-enabled", defaults.Rsync.Enabled, "Enable rsync transfer")
+	rsyncDestFlag := flag.String("rsync-dest", defaults.Rsync.Destination, "Rsync destination (e.g., user@host:/path/)")
+	rsyncOptsFlag := flag.String("rsync-opts", defaults.Rsync.Options, "Additional options for the rsync command")
+	rsyncCmdFlag := flag.String("rsync-cmd", defaults.Rsync.Command, "Path to the rsync command executable")
+
+	flag.Parse()
+
+	// Determine effective config file path
+	cfgFile := *configFilePath
+	if cfgFile == "" { // If flag not set, check env
+		cfgFile = os.Getenv("DOCKER_BACKUP_CONFIG_FILE")
+	}
+	if cfgFile == "" { // If flag and env not set, use default name
+		cfgFile = "config.yaml" // Default config file name
+	}
+
+	// Attempt to read config file
+	yamlData, err := os.ReadFile(cfgFile)
 	if err != nil {
-		return cfg, err
-	}
-
-	// --- Environment Variables ---
-	// Explicitly bind problematic env vars BEFORE AutomaticEnv
-	vp.BindEnv("restart_after_backup", "DOCKER_BACKUP_RESTART_AFTER_BACKUP")
-	vp.BindEnv("pull_before_restart", "DOCKER_BACKUP_PULL_BEFORE_RESTART")
-	vp.BindEnv("exclude", "DOCKER_BACKUP_EXCLUDE") // Still might not parse slice correctly, but let's bind it.
-	vp.BindEnv("verbose", "DOCKER_BACKUP_VERBOSE") // Bind this too for consistency
-	vp.BindEnv("log_file", "DOCKER_BACKUP_LOG_FILE")
-
-	// Keep AutomaticEnv for others, but explicitly bound ones should take precedence if found
-	vp.SetEnvPrefix("DOCKER_BACKUP")
-	vp.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
-	vp.AutomaticEnv()
-	// log.Printf("[DEBUG Config] Viper settings after AutomaticEnv:\n%+v\n", vp.AllSettings())
-	// log.Printf("[DEBUG Config] DOCKER_BACKUP_RESTART_AFTER_BACKUP from env: %s (Viper GetString: %s)", os.Getenv("DOCKER_BACKUP_RESTART_AFTER_BACKUP"), vp.GetString("restart_after_backup"))
-	// log.Printf("[DEBUG Config] DOCKER_BACKUP_PULL_BEFORE_RESTART from env: %s (Viper GetString: %s)", os.Getenv("DOCKER_BACKUP_PULL_BEFORE_RESTART"), vp.GetString("pull_before_restart"))
-	// log.Printf("[DEBUG Config] DOCKER_BACKUP_EXCLUDE from env: %s (Viper GetString: %s)", os.Getenv("DOCKER_BACKUP_EXCLUDE"), vp.GetString("exclude")) // Commented out due to linter/apply issues
-
-	// --- Config File ---
-	cfgFile := *configFile
-	if cfgFile != "" {
-		vp.SetConfigFile(cfgFile)
-	} else {
-		vp.AddConfigPath(".")
-		vp.AddConfigPath("$HOME/.config")
-		vp.SetConfigName("config")
-		vp.SetConfigType("yaml")
-	}
-
-	if err := vp.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			if cfgFile != "" {
-				return cfg, err
-			}
-			log.Println("No configuration file found. Using defaults/flags/env vars.")
+		if os.IsNotExist(err) {
+			log.Printf("Configuration file '%s' not found. Using defaults/env/flags.", cfgFile)
 		} else {
-			return cfg, fmt.Errorf("error reading config file '%s': %w", vp.ConfigFileUsed(), err)
+			return cfg, fmt.Errorf("error reading config file '%s': %w", cfgFile, err)
 		}
 	} else {
-		log.Printf("Using configuration file: %s", vp.ConfigFileUsed())
-	}
-	// log.Printf("[DEBUG Config] Viper settings after ReadInConfig:\n%+v\n", vp.AllSettings())
+		log.Printf("Using configuration file: %s", cfgFile)
+		var yamlCfg yamlConfig
+		err = yaml.Unmarshal(yamlData, &yamlCfg)
+		if err != nil {
+			return cfg, fmt.Errorf("error unmarshalling config file '%s': %w", cfgFile, err)
+		}
 
-	// --- Unmarshal to Struct ---
-	err = vp.Unmarshal(&cfg)
-	// if err != nil {
-	// 	log.Printf("[DEBUG Config] Unmarshal error: %v", err)
-	// }
-	// log.Printf("[DEBUG Config] Final Config Struct:\n%+v\n", cfg)
-	// log.Printf("[DEBUG Config] Viper settings after Unmarshal:\n%+v\n", vp.AllSettings())
-	return cfg, err // Return original error from Unmarshal if any
+		// Override defaults with YAML values where they exist
+		if yamlCfg.ComposeDir != "" {
+			cfg.ComposeDir = yamlCfg.ComposeDir
+		}
+		if yamlCfg.AppdataDir != "" {
+			cfg.AppdataDir = yamlCfg.AppdataDir
+		}
+		if yamlCfg.BackupDir != "" {
+			cfg.BackupDir = yamlCfg.BackupDir
+		}
+		if yamlCfg.RestartAfterBackup {
+			cfg.RestartAfterBackup = yamlCfg.RestartAfterBackup
+		}
+		if yamlCfg.PullBeforeRestart {
+			cfg.PullBeforeRestart = yamlCfg.PullBeforeRestart
+		}
+		if len(yamlCfg.Exclude) > 0 {
+			cfg.Exclude = yamlCfg.Exclude
+		}
+		if yamlCfg.Verbose {
+			cfg.Verbose = yamlCfg.Verbose
+		}
+		if yamlCfg.DryRun {
+			cfg.DryRun = yamlCfg.DryRun
+		}
+		if yamlCfg.LogFile != "" {
+			cfg.LogFile = yamlCfg.LogFile
+		}
+		if yamlCfg.LogRotationMaxSizeMB != 0 {
+			cfg.LogRotationMaxSizeMB = yamlCfg.LogRotationMaxSizeMB
+		}
+		if yamlCfg.LogRotationMaxBackups != 0 {
+			cfg.LogRotationMaxBackups = yamlCfg.LogRotationMaxBackups
+		}
+		if yamlCfg.LogRotationMaxAgeDays != 0 {
+			cfg.LogRotationMaxAgeDays = yamlCfg.LogRotationMaxAgeDays
+		}
+		if yamlCfg.LogRotationCompress {
+			cfg.LogRotationCompress = yamlCfg.LogRotationCompress
+		}
+
+		if yamlCfg.Rsync.Enabled {
+			cfg.Rsync.Enabled = yamlCfg.Rsync.Enabled
+		}
+		if yamlCfg.Rsync.Destination != "" {
+			cfg.Rsync.Destination = yamlCfg.Rsync.Destination
+		}
+		if yamlCfg.Rsync.Options != "" {
+			cfg.Rsync.Options = yamlCfg.Rsync.Options
+		}
+		if yamlCfg.Rsync.Command != "" {
+			cfg.Rsync.Command = yamlCfg.Rsync.Command
+		}
+	}
+
+	// --- 3. Environment Variables --- (Load .env first)
+	// Ignore "file not found" error for .env
+	_ = godotenv.Load() // Loads .env file into environment variables
+
+	// Override config/defaults with ENV vars
+	if envVal := os.Getenv("DOCKER_BACKUP_COMPOSE_DIR"); envVal != "" {
+		cfg.ComposeDir = envVal
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_APPDATA_DIR"); envVal != "" {
+		cfg.AppdataDir = envVal
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_BACKUP_DIR"); envVal != "" {
+		cfg.BackupDir = envVal
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_RESTART_AFTER_BACKUP"); envVal != "" {
+		if b, err := strconv.ParseBool(envVal); err == nil {
+			cfg.RestartAfterBackup = b
+		}
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_PULL_BEFORE_RESTART"); envVal != "" {
+		if b, err := strconv.ParseBool(envVal); err == nil {
+			cfg.PullBeforeRestart = b
+		}
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_VERBOSE"); envVal != "" {
+		if b, err := strconv.ParseBool(envVal); err == nil {
+			cfg.Verbose = b
+		}
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_DRY_RUN"); envVal != "" {
+		if b, err := strconv.ParseBool(envVal); err == nil {
+			cfg.DryRun = b
+		}
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_LOG_FILE"); envVal != "" {
+		cfg.LogFile = envVal
+	}
+	// Add parsing for other log rotation env vars if needed (e.g., using strconv.Atoi)
+
+	if envVal := os.Getenv("DOCKER_BACKUP_RSYNC_ENABLED"); envVal != "" {
+		if b, err := strconv.ParseBool(envVal); err == nil {
+			cfg.Rsync.Enabled = b
+		}
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_RSYNC_DESTINATION"); envVal != "" {
+		cfg.Rsync.Destination = envVal
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_RSYNC_OPTIONS"); envVal != "" {
+		cfg.Rsync.Options = envVal
+	}
+	if envVal := os.Getenv("DOCKER_BACKUP_RSYNC_COMMAND"); envVal != "" {
+		cfg.Rsync.Command = envVal
+	}
+	// Note: Handling exclude list via ENV is complex; recommend using config file.
+
+	// --- 4. Flags --- (Override all previous values if flag was set)
+	// Check if a flag was actually set on the command line
+	flagSet := make(map[string]bool)
+	flag.Visit(func(f *flag.Flag) { flagSet[f.Name] = true })
+
+	if flagSet["compose-dir"] {
+		cfg.ComposeDir = *composeDirFlag
+	}
+	if flagSet["appdata-dir"] {
+		cfg.AppdataDir = *appdataDirFlag
+	}
+	if flagSet["backup-dir"] {
+		cfg.BackupDir = *backupDirFlag
+	}
+	if flagSet["restart"] {
+		cfg.RestartAfterBackup = *restartFlag
+	}
+	if flagSet["pull"] {
+		cfg.PullBeforeRestart = *pullFlag
+	}
+	if flagSet["verbose"] || flagSet["v"] {
+		cfg.Verbose = *verboseFlag
+	}
+	if flagSet["dry-run"] {
+		cfg.DryRun = *dryRunFlag
+	}
+	if flagSet["log-file"] {
+		cfg.LogFile = *logFileFlag
+	}
+	if flagSet["rsync-enabled"] {
+		cfg.Rsync.Enabled = *rsyncEnabledFlag
+	}
+	if flagSet["rsync-dest"] {
+		cfg.Rsync.Destination = *rsyncDestFlag
+	}
+	if flagSet["rsync-opts"] {
+		cfg.Rsync.Options = *rsyncOptsFlag
+	}
+	if flagSet["rsync-cmd"] {
+		cfg.Rsync.Command = *rsyncCmdFlag
+	}
+	// Handle exclude flag if implemented (would require custom parsing)
+
+	return cfg, nil
 }
